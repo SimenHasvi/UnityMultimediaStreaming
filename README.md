@@ -12,4 +12,4 @@ This application is simple and uses only managed code, so it should fully be com
 
 Its made in Unity 2020.3.7f1, but any recent version should be just fine.
 
-[Kafka-net]([GitHub - Jroland/kafka-net: Native C# client for Kafka queue servers.](https://github.com/Jroland/kafka-net)) by is used for the Kafka connection, and [concentus]([GitHub - lostromb/concentus: Pure Portable C# and Java implementations of the Opus audio codec](https://github.com/lostromb/concentus)) is used for the Opus codec.
+[Kafka-net](https://github.com/Jroland/kafka-net) by is used for the Kafka connection, and [concentus](https://github.com/lostromb/concentus) is used for the Opus codec.
