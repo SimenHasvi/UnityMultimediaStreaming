@@ -113,4 +113,16 @@ public class VoiceChatUtils : MonoBehaviour
         _decoder.Decode(packet, 1, packet.Length-1, frame, 0, frame.Length);
         return (id, frame);
     }
+
+    private void OnDestroy()
+    {
+        _consumeThread.Abort();
+        _consumeThread.Join();
+    }
+    
+    private void OnDisable()
+    {
+        _consumeThread.Abort();
+        _consumeThread.Join();
+    }
 }

@@ -12,12 +12,9 @@ public class MicInput : MonoBehaviour
     [Range(0.0f, 1.0f)]
     public float threshold;
     
-    private int _frameSize;
     private float[] _frame;
-    private byte[] _sampleBytes;
     private int _lastPos, _pos = 0;
     private AudioClip _mic;
-    private Producer _producer;
 
     public void Initialize(int frequency, int frameSize)
     {
