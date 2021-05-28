@@ -20,6 +20,7 @@ public class MicInput : MonoBehaviour
     {
         _frame = new float[frameSize];
         _mic = Microphone.Start(Microphone.devices[0], true, 50, frequency);
+        Debug.Log("sampling from microphone: " + Microphone.devices[0] + ", frequency: " + _mic.frequency);
         StartCoroutine(SampleAudio());
     }
 

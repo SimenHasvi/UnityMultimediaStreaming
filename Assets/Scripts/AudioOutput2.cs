@@ -29,10 +29,11 @@ public class AudioOutput2 : MonoBehaviour
         while (VoiceChatUtils.sampleRateStatic < 0 && VoiceChatUtils.frameSizeStatic < 0) yield return null;
         _audioSource.clip = AudioClip.Create("voice_chat_clip", VoiceChatUtils.frameSizeStatic * FramesInAudioSource, 1, VoiceChatUtils.sampleRateStatic, false);
         _audioSource.loop = true;
-        Debug.Log("Playing audio from user: " + id);
         _audioSource.Play();
+        Debug.Log("Playing audio from user: " + id + ", sample buffer length: " + _audioSource.clip.samples + ", frequency: " + _audioSource.clip.frequency);
         while (true)
         {
+            if (VoiceChatUtils.verboseStatic && _frameBuffer.Count > 0) Debug.Log("[id: "+id+"] inserting frame to sample buffer, frame buffer size: " + _frameBuffer.Count);
             if (_frameBuffer.Count > 0) _audioSource.clip.SetData(_frameBuffer.Dequeue(), _endOfData);
             else _audioSource.clip.SetData(new float[VoiceChatUtils.frameSizeStatic], _endOfData);
             _endOfData += VoiceChatUtils.frameSizeStatic;
@@ -53,7 +54,7 @@ public class AudioOutput2 : MonoBehaviour
     private void OnNewFrame(int headerId, float[] newFrame)
     {
         if (headerId != id) return;
-        if (_frameBuffer.Count > 50) return;
+        while (_frameBuffer.Count > 10) _frameBuffer.Dequeue();
         _frameBuffer.Enqueue(newFrame);
     }
 }

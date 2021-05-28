@@ -12,10 +12,14 @@ using NSpeex;
 using UnityEngine;
 using Concentus.Enums;
 using Concentus.Structs;
+using Microsoft.Win32;
 using Debug = UnityEngine.Debug;
 
 public class VoiceChatUtils : MonoBehaviour
 {
+    [Header("Enable verbose mode:")]
+    public bool verbose;
+
     [Header("MicInputObject")] 
     public MicInput micInput;
     
@@ -46,7 +50,8 @@ public class VoiceChatUtils : MonoBehaviour
     private static Thread _consumeThread;
     private static string _serverTopicStatic;
     private static int _idStatic;
-    
+
+    public static bool verboseStatic;
     public static int frameSizeStatic = -1;
     public static int sampleRateStatic = -1;
 
@@ -54,6 +59,7 @@ public class VoiceChatUtils : MonoBehaviour
     {
         // set target framerate
         Application.targetFrameRate = targetFramerate;
+        Debug.Log("target framerate set to: " + targetFramerate);
         
         // start networking
         var options = new ConsumerOptions(serverTopic, new BrokerRouter(new KafkaOptions(new Uri(serverUri))));
@@ -71,10 +77,13 @@ public class VoiceChatUtils : MonoBehaviour
         _idStatic = id;
         sampleRateStatic = sampleRate;
         frameSizeStatic = frameSize;
+        verboseStatic = verbose;
 
         // set up encoder/decoder
         _encoder = new OpusEncoder(sampleRate, 1, compressionMode) {Bitrate = bitrate};
         _decoder = new OpusDecoder(sampleRate, 1);
+        Debug.Log("encoder sample rate: " + _encoder.SampleRate + ", channels: " + _encoder.NumChannels + ", compression mode: " + _encoder.Application + ", bitrate: " + _encoder.Bitrate);
+        Debug.Log("decoder sample rate: " + _decoder.SampleRate + ", channels: " + _decoder.NumChannels);
 
         // start sampling from microphone
         micInput.Initialize(sampleRate, frameSize);
@@ -82,6 +91,7 @@ public class VoiceChatUtils : MonoBehaviour
     
     void Consume()
     {
+        Debug.Log("starting consumer with url: " + serverUri + ", topic: " + serverTopic + ", " + _consumer.GetOffsetPosition()[0]);
         foreach (var message in _consumer.Consume())
         {
             var (headerId, audioClip) = Decode(message.Value);
@@ -102,6 +112,7 @@ public class VoiceChatUtils : MonoBehaviour
         var packet = new byte[compressedFrame.Length + 1];
         packet[0] = (byte)id;
         Array.Copy(compressedFrame, 0, packet, 1, compressedFrame.Length);
+        if (verboseStatic) Debug.Log("sending packet with frame size: " + frame.Length + ", compressed bytes: " + compressedFrame.Length);
         return packet;
     }
 
@@ -111,6 +122,7 @@ public class VoiceChatUtils : MonoBehaviour
         if (!idsListenedTo.Contains(id)) return (-1, new float[0]);
         var frame = new float[OpusPacketInfo.GetNumSamples(packet, 1, packet.Length-1, 48000)];
         _decoder.Decode(packet, 1, packet.Length-1, frame, 0, frame.Length);
+        if (verboseStatic) Debug.Log("received packet from id: " + id + ", frame size: " + frame.Length);
         return (id, frame);
     }
 
