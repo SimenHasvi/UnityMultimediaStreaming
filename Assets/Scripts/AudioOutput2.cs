@@ -10,6 +10,11 @@ public class AudioOutput2 : MonoBehaviour
     [Header("The User ID to Listen For")]
     public int id;
 
+    [Header("Gain Control")]
+    public bool manualGainControl = false;
+    [Range(0, 5)]
+    public float gainMultiplier = 1;
+
     private AudioSource _audioSource;
     private readonly Queue<float[]> _frameBuffer = new Queue<float[]>();
     private const int FramesInAudioSource = 5;
@@ -54,6 +59,7 @@ public class AudioOutput2 : MonoBehaviour
     private void OnNewFrame(int headerId, float[] newFrame)
     {
         if (headerId != id) return;
+        if (manualGainControl) for (var i = 0; i < newFrame.Length; i++) newFrame[i] *= gainMultiplier;
         while (_frameBuffer.Count > 10) _frameBuffer.Dequeue();
         _frameBuffer.Enqueue(newFrame);
     }

@@ -80,7 +80,7 @@ public class VoiceChatUtils : MonoBehaviour
         verboseStatic = verbose;
 
         // set up encoder/decoder
-        _encoder = new OpusEncoder(sampleRate, 1, compressionMode) {Bitrate = bitrate};
+        _encoder = new OpusEncoder(sampleRate, 1, compressionMode) {Bitrate = bitrate, UseVBR = true, SignalType = OpusSignal.OPUS_SIGNAL_VOICE, ForceMode = OpusMode.MODE_SILK_ONLY};
         _decoder = new OpusDecoder(sampleRate, 1);
         Debug.Log("encoder sample rate: " + _encoder.SampleRate + ", channels: " + _encoder.NumChannels + ", compression mode: " + _encoder.Application + ", bitrate: " + _encoder.Bitrate);
         Debug.Log("decoder sample rate: " + _decoder.SampleRate + ", channels: " + _decoder.NumChannels);

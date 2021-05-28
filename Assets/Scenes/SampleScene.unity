@@ -309,11 +309,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   verbose: 1
   micInput: {fileID: 755109318}
-  targetFramerate: 15
+  targetFramerate: 30
   sampleRate: 48000
   frameSize: 2880
   compressionMode: 2048
-  bitrate: 12000
+  bitrate: 14000
   id: 1
   localNetworking: 0
   serverUri: kafka://virtualclassroom-server.cs.hku.hk:9092
@@ -469,7 +469,7 @@ AudioSource:
   MinDistance: 1
   MaxDistance: 500
   Pan2D: 0
-  rolloffMode: 0
+  rolloffMode: 2
   BypassEffects: 0
   BypassListenerEffects: 0
   BypassReverbZones: 0
@@ -478,7 +478,7 @@ AudioSource:
     m_Curve:
     - serializedVersion: 3
       time: 0
-      value: 1
+      value: 1.1
       inSlope: 0
       outSlope: 0
       tangentMode: 0
@@ -487,7 +487,7 @@ AudioSource:
       outWeight: 0.33333334
     - serializedVersion: 3
       time: 1
-      value: 0
+      value: 1.1
       inSlope: 0
       outSlope: 0
       tangentMode: 0
