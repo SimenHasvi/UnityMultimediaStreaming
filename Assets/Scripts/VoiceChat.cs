@@ -16,12 +16,11 @@ using UnityEngine;
 [RequireComponent(typeof(AudioSource))]
 public class VoiceChat : MonoBehaviour
 {
-    [Header("Enable verbose mode:")]
+    [Header("Debug stuff")]
     public bool verbose;
-
-    [Header("Limit FPS")]
     [Range(10, 100)]
     public int targetFramerate;
+    public bool playBackSelf;
     
     [Header("Audio Format")]
     public int sampleRate;
@@ -132,6 +131,7 @@ public class VoiceChat : MonoBehaviour
 
     void AddFrameToBuffer(int headerId, short[] frame)
     {
+        if (playBackSelf && headerId == id) return;
         if (!_frameBuffers.ContainsKey(headerId)) _frameBuffers.Add(headerId, new Queue<short[]>());
         while (_frameBuffers[headerId].Count > _audioFormat.FramesPerSecond / 4) _frameBuffers[headerId].Dequeue();
         _frameBuffers[headerId].Enqueue(frame);
