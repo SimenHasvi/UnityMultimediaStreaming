@@ -131,7 +131,7 @@ public class VoiceChat : MonoBehaviour
 
     void AddFrameToBuffer(int headerId, short[] frame)
     {
-        if (playBackSelf && headerId == id) return;
+        if (!playBackSelf && headerId == id) return;
         if (!_frameBuffers.ContainsKey(headerId)) _frameBuffers.Add(headerId, new Queue<short[]>());
         while (_frameBuffers[headerId].Count > _audioFormat.FramesPerSecond / 4) _frameBuffers[headerId].Dequeue();
         _frameBuffers[headerId].Enqueue(frame);
