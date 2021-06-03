@@ -384,14 +384,16 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   verbose: 0
-  targetFramerate: 60
+  targetFramerate: 100
+  playBackSelf: 1
   sampleRate: 16000
   millisecondsPerFrame: 10
+  complexity: 10
   compressionMode: 2048
   bitrate: 14000
   acousticEchoCancellation: 1
   noiseSuppression: 0
-  automaticGainControl: 0
+  automaticGainControl: 1
   expectedDelay: 240
   filterLength: 100
   id: 1

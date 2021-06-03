@@ -12,6 +12,7 @@ using KafkaNet;
 using KafkaNet.Model;
 using KafkaNet.Protocol;
 using UnityEngine;
+using UnityEngine.UI;
 
 [RequireComponent(typeof(AudioSource))]
 public class VoiceChat : MonoBehaviour
@@ -21,12 +22,14 @@ public class VoiceChat : MonoBehaviour
     [Range(10, 100)]
     public int targetFramerate;
     public bool playBackSelf;
-    
+
     [Header("Audio Format")]
     public int sampleRate;
     public int millisecondsPerFrame;
-    
-    [Header("Audio Compression")]
+
+    [Header("Audio Compression")] 
+    [Range(0, 10)]
+    public int complexity;
     public OpusApplication compressionMode = OpusApplication.OPUS_APPLICATION_VOIP;
     public int bitrate;
     
@@ -66,7 +69,7 @@ public class VoiceChat : MonoBehaviour
         // set target framerate
         Application.targetFrameRate = targetFramerate;
         Debug.Log("target framerate set to: " + targetFramerate);
-        
+
         // start networking
         var options = new ConsumerOptions(serverTopic, new BrokerRouter(new KafkaOptions(new Uri(serverUri))));
         options.MinimumBytes = 1;
@@ -80,7 +83,7 @@ public class VoiceChat : MonoBehaviour
         
         // set up encoder/decoder/enchacer
         _audioFormat = new AudioFormat(sampleRate, millisecondsPerFrame, 1, sizeof(short) * 8);
-        _encoder = new OpusEncoder(_audioFormat.SamplesPerSecond, _audioFormat.Channels, compressionMode) {Bitrate = bitrate, UseVBR = true, SignalType = OpusSignal.OPUS_SIGNAL_VOICE, ForceMode = OpusMode.MODE_SILK_ONLY};
+        _encoder = new OpusEncoder(_audioFormat.SamplesPerSecond, _audioFormat.Channels, compressionMode) {Bitrate = bitrate, UseVBR = true, SignalType = OpusSignal.OPUS_SIGNAL_VOICE, ForceMode = OpusMode.MODE_SILK_ONLY, Complexity = complexity};
         _decoder = new OpusDecoder(_audioFormat.SamplesPerSecond, _audioFormat.Channels);
         var resampleFilter = new ResampleFilter(_audioFormat, _audioFormat);
         _enhancer = new WebRtcFilter(expectedDelay, filterLength, _audioFormat, _audioFormat, acousticEchoCancellation, noiseSuppression, automaticGainControl, resampleFilter);
@@ -105,8 +108,9 @@ public class VoiceChat : MonoBehaviour
         Debug.Log("starting consumer with url: " + serverUri + ", topic: " + serverTopic + ", " + _consumer.GetOffsetPosition()[0]);
         foreach (var message in _consumer.Consume())
         {
-            var (headerId, audioClip) = Decode(message.Value);
-            AddFrameToBuffer(headerId, audioClip);
+            var (headerId, frame) = Decode(message.Value);
+            if (verbose) Debug.Log("Received packet from user: " + headerId);
+            AddFrameToBuffer(headerId, frame);
         }
     }
     
@@ -118,6 +122,7 @@ public class VoiceChat : MonoBehaviour
         var packet = new byte[compressedFrame.Length + 1];
         packet[0] = (byte)id;
         Array.Copy(compressedFrame, 0, packet, 1, compressedFrame.Length);
+        if (verbose) Debug.Log("Sending package with bytes: " + packet.Length);
         return packet;
     }
 
@@ -132,7 +137,11 @@ public class VoiceChat : MonoBehaviour
     void AddFrameToBuffer(int headerId, short[] frame)
     {
         if (!playBackSelf && headerId == id) return;
-        if (!_frameBuffers.ContainsKey(headerId)) _frameBuffers.Add(headerId, new Queue<short[]>());
+        if (!_frameBuffers.ContainsKey(headerId))
+        {
+            Debug.Log("Created buffer for user: " + headerId);
+            _frameBuffers.Add(headerId, new Queue<short[]>());
+        }
         while (_frameBuffers[headerId].Count > _audioFormat.FramesPerSecond / 4) _frameBuffers[headerId].Dequeue();
         _frameBuffers[headerId].Enqueue(frame);
     }
@@ -164,7 +173,6 @@ public class VoiceChat : MonoBehaviour
                 if (_pos < _lastPos) _lastPos = 0;
                 yield return null;
             }
-
             _mic.GetData(frame, _lastPos);
             _lastPos += frame.Length;
             Produce(FloatToShort(frame));
