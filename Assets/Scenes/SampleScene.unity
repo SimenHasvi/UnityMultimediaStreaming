@@ -391,6 +391,7 @@ MonoBehaviour:
   complexity: 10
   compressionMode: 2048
   bitrate: 14000
+  playbackVolumeAmplification: 1
   acousticEchoCancellation: 1
   noiseSuppression: 0
   automaticGainControl: 1

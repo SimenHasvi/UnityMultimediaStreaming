@@ -32,8 +32,10 @@ public class VoiceChat : MonoBehaviour
     public int complexity;
     public OpusApplication compressionMode = OpusApplication.OPUS_APPLICATION_VOIP;
     public int bitrate;
-    
+
     [Header("Audio Enhancments")]
+    [Range(0, 5)]
+    public float playbackVolumeAmplification;
     public bool acousticEchoCancellation;
     public bool noiseSuppression;
     public bool automaticGainControl;
@@ -155,7 +157,7 @@ public class VoiceChat : MonoBehaviour
             var frame = frameBuffer.Dequeue();
             for (var i = 0; i < combinedFrame.Length; i++)
             {
-                combinedFrame[i] += frame[i];
+                combinedFrame[i] += (short)(frame[i] * playbackVolumeAmplification);
             }
         }
         _enhancer.RegisterFramePlayed(ToByteStream(combinedFrame));
