@@ -385,7 +385,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   verbose: 0
   targetFramerate: 100
-  playBackSelf: 1
+  playBackSelf: 0
   sampleRate: 16000
   millisecondsPerFrame: 10
   complexity: 10

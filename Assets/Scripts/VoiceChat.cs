@@ -12,7 +12,6 @@ using KafkaNet;
 using KafkaNet.Model;
 using KafkaNet.Protocol;
 using UnityEngine;
-using UnityEngine.UI;
 
 [RequireComponent(typeof(AudioSource))]
 public class VoiceChat : MonoBehaviour
@@ -84,6 +83,7 @@ public class VoiceChat : MonoBehaviour
         _producer = new Producer(new BrokerRouter(new KafkaOptions(new Uri(serverUri))));
         
         // set up encoder/decoder/enchacer
+        // sampling rate can be 8000, 12000, 16000, 24000, or 48000
         _audioFormat = new AudioFormat(sampleRate, millisecondsPerFrame, 1, sizeof(short) * 8);
         _encoder = new OpusEncoder(_audioFormat.SamplesPerSecond, _audioFormat.Channels, compressionMode) {Bitrate = bitrate, UseVBR = true, SignalType = OpusSignal.OPUS_SIGNAL_VOICE, ForceMode = OpusMode.MODE_SILK_ONLY, Complexity = complexity};
         _decoder = new OpusDecoder(_audioFormat.SamplesPerSecond, _audioFormat.Channels);
@@ -144,8 +144,14 @@ public class VoiceChat : MonoBehaviour
             Debug.Log("Created buffer for user: " + headerId);
             _frameBuffers.Add(headerId, new Queue<short[]>());
         }
-        while (_frameBuffers[headerId].Count > _audioFormat.FramesPerSecond / 4) _frameBuffers[headerId].Dequeue();
+
+        if (_frameBuffers[headerId].Count > _audioFormat.FramesPerSecond / 4)
+        {
+            Debug.LogWarning("Buffer " + headerId + " is full! Skipping frames..");
+            while (_frameBuffers[headerId].Count > _audioFormat.FramesPerSecond / 8) _frameBuffers[headerId].Dequeue();
+        }
         _frameBuffers[headerId].Enqueue(frame);
+        if (verbose) Debug.Log("added frame to buffer: " + headerId + ", length is now: " + _frameBuffers[headerId].Count + " / " + _audioFormat.FramesPerSecond / 4);
     }
 
     short[] GetNextFrameFromBuffer()
