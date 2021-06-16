@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using UnityEngine;
 
 namespace VoiceChat
 {
@@ -7,6 +9,48 @@ namespace VoiceChat
     /// </summary>
     public static class VoiceChatUtils
     {
+        /// <summary>
+        /// Types of log messages
+        /// </summary>
+        public enum LogType {Info, VerboseInfo, Warning}
+        
+        /// <summary>
+        /// Delegate for the event of a log message received
+        /// </summary>
+        public delegate void LogMsgReceivedDelegate(LogType type, string msg);
+        
+        /// <summary>
+        /// Called in the even of a log message received
+        /// </summary>
+        public static event LogMsgReceivedDelegate onLogMsgReceived;
+        
+        /// <summary>
+        /// Call to log certain info. What do to with the messages is determined by <see cref="onLogMsgReceived"/>
+        /// </summary>
+        /// <param name="type">The type of log message.</param>
+        /// <param name="msg">The message.</param>
+        public static void Log(LogType type, string msg)
+        {
+            onLogMsgReceived?.Invoke(type, msg);
+        }
+
+        /// <summary>
+        /// Write the log messages in the unity console.
+        /// </summary>
+        /// <param name="verbose">Whether to write the verbose messages or not.</param>
+        public static void EnableUnityLogging(bool verbose)
+        {
+            onLogMsgReceived += (type, msg) =>
+            {
+                switch (type)
+                {
+                    case LogType.Info:Debug.Log(msg); break;
+                    case LogType.VerboseInfo: if (verbose) Debug.Log(msg); break;
+                    case LogType.Warning: Debug.LogWarning(msg); break;
+                }
+            };
+        }
+        
         /// <summary>
         /// Convert a float array with range -1 to 1 to a short array.
         /// </summary>

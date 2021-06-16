@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace VoiceChat
@@ -41,7 +42,11 @@ namespace VoiceChat
         /// <param name="targetMs">The amount of milliseconds we should allow to buffer</param>
         public void SetBufferSizeMs(int targetMs)
         {
-            Debug.Assert(targetMs > _audioFormat.MillisecondsPerFrame, "The buffer has to be longer than a frame!");
+            if (targetMs < _audioFormat.MillisecondsPerFrame)
+            {
+                VoiceChatUtils.Log(VoiceChatUtils.LogType.Warning, "The given target is less than a single frame!");
+                return;
+            }
             MaxFramesInBuffer = targetMs / _audioFormat.MillisecondsPerFrame;
         }
 
@@ -57,8 +62,17 @@ namespace VoiceChat
         /// <param name="id">The id of the user where the frame comes from, ignore if no such thing.</param>
         public void AddFrameToBuffer(short[] frame, int id = 0)
         {
-            if (!_frameBuffers.ContainsKey(id)) _frameBuffers.Add(id, new Queue<short[]>());
-            if (_frameBuffers[id].Count > MaxFramesInBuffer) while (_frameBuffers[id].Count > MaxFramesInBuffer / 2) _frameBuffers[id].Dequeue();
+            if (!_frameBuffers.ContainsKey(id))
+            {
+                VoiceChatUtils.Log(VoiceChatUtils.LogType.VerboseInfo, "Created a new buffer for user: " + id);
+                _frameBuffers.Add(id, new Queue<short[]>());
+            }
+
+            if (_frameBuffers[id].Count > MaxFramesInBuffer)
+            {
+                VoiceChatUtils.Log(VoiceChatUtils.LogType.VerboseInfo, "Buffer for user " + id + " is full! Skipping frames.");
+                while (_frameBuffers[id].Count > MaxFramesInBuffer / 2) _frameBuffers[id].Dequeue();
+            }
             _frameBuffers[id].Enqueue(frame);
         }
 
@@ -70,12 +84,17 @@ namespace VoiceChat
         public short[] GetNextFrameFromBuffer(params int[] excludeId)
         {
             var combinedFrame = new short[_audioFormat.SamplesPerFrame];
-            foreach (var frameBuffer in _frameBuffers.Values)
+            foreach (var frameBuffer in _frameBuffers)
             {
-                lock (frameBuffer)
+                if (excludeId.Contains(frameBuffer.Key)) continue;
+                lock (frameBuffer.Value)
                 {
-                    if (frameBuffer.Count <= 0) continue;
-                    var frame = frameBuffer.Dequeue();
+                    if (frameBuffer.Value.Count <= 0)
+                    {
+                        VoiceChatUtils.Log(VoiceChatUtils.LogType.VerboseInfo, "Buffer for user " + frameBuffer.Key + " is empty!");
+                        continue;
+                    }
+                    var frame = frameBuffer.Value.Dequeue();
                     for (var i = 0; i < combinedFrame.Length; i++)
                     {
                         combinedFrame[i] += frame[i];

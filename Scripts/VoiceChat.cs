@@ -6,6 +6,7 @@ namespace VoiceChat
 {
     public class VoiceChat : MonoBehaviour
     {
+        public bool playSelf;
         public int id;
         public string serverUri;
         public string serverTopic;
@@ -38,6 +39,8 @@ namespace VoiceChat
         
         private void Start()
         {
+            VoiceChatUtils.EnableUnityLogging(true);
+            
             _audioFormat = new AudioFormat(sampleRate, millisecondsPerFrame);
             
             _audioFrameBuffer = new AudioFrameBuffer(_audioFormat);
@@ -86,7 +89,7 @@ namespace VoiceChat
             _audioSource.Play();
             while (true)
             {
-                var frame = _networkModule.AudioFrameBuffer.GetNextFrameFromBuffer();
+                var frame = playSelf ? _networkModule.AudioFrameBuffer.GetNextFrameFromBuffer() : _networkModule.AudioFrameBuffer.GetNextFrameFromBuffer(id);
                 _audioProcessor.RegisterPlayedFrame(frame);
                 _audioSource.clip.SetData(VoiceChatUtils.ShortToFloat(frame), _endOfData);
                 _endOfData += _audioFormat.SamplesPerFrame;

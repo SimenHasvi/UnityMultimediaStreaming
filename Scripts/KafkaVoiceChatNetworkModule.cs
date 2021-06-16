@@ -4,6 +4,7 @@ using System.Threading;
 using KafkaNet;
 using KafkaNet.Model;
 using KafkaNet.Protocol;
+using UnityEngine;
 
 namespace VoiceChat
 {
@@ -12,15 +13,14 @@ namespace VoiceChat
     /// </summary>
     public class KafkaVoiceChatNetworkModule : VoiceChatNetworkModule
     {
-        private string ServerTopic;
-        private Consumer _consumer;
-        
-        private Producer _producer;
-        private Thread _consumeThread;
+        private readonly string _serverTopic;
+        private readonly Consumer _consumer;
+        private readonly Producer _producer;
+        private readonly Thread _consumeThread;
         
         public KafkaVoiceChatNetworkModule(int id, string serverUri, string serverTopic, AudioCodec audioCodec) : base(id, serverUri, audioCodec)
         {
-            ServerTopic = serverTopic;
+            _serverTopic = serverTopic;
             var options = new ConsumerOptions(serverTopic, new BrokerRouter(new KafkaOptions(new Uri(ServerUri))));
             options.MinimumBytes = 1;
             _consumer = new Consumer(options);
@@ -40,6 +40,7 @@ namespace VoiceChat
 
         public override void StopListenForFrames()
         {
+            VoiceChatUtils.Log(VoiceChatUtils.LogType.Info, "Stopping consumer..");
             _consumeThread.Abort();
             //join thread to wait for it to be aborted
             _consumeThread.Join();
@@ -51,19 +52,19 @@ namespace VoiceChat
             var packet = new byte[compressedFrame.Length + 1];
             packet[0] = Convert.ToByte(Id);
             Array.Copy(compressedFrame, 0, packet, 1, compressedFrame.Length);
-            _producer.SendMessageAsync(ServerTopic, new[] {new Message(packet)});
+            _producer.SendMessageAsync(_serverTopic, new[] {new Message(packet)});
         }
 
         /// <summary>
         /// Consumes frames from the kafka server.
         /// This is meant to be ran on its own thread.
-        /// </summary>
+        /// </summary> 
         private void Consume()
         {
+            VoiceChatUtils.Log(VoiceChatUtils.LogType.Info, "Starting kafka consumer on server: " + ServerUri + " topic: " + _serverTopic + " " + _consumer.GetOffsetPosition()[0]);
             foreach (var message in _consumer.Consume())
             {
                 var packet = message.Value;
-                AudioCodec.Decode(packet.Skip(1).ToArray());
                 AudioFrameBuffer.AddFrameToBuffer(AudioCodec.Decode(packet.Skip(1).ToArray()), Convert.ToInt32(packet[0]));
             }
         }
