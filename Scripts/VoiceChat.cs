@@ -90,7 +90,8 @@ namespace VoiceChat
             while (true)
             {
                 var frame = playSelf ? _networkModule.AudioFrameBuffer.GetNextFrameFromBuffer() : _networkModule.AudioFrameBuffer.GetNextFrameFromBuffer(id);
-                _audioProcessor.RegisterPlayedFrame(frame);
+                StartCoroutine(_audioProcessor.RegisterPlayedFrameDelayed(frame, _audioFormat.MillisecondsPerFrame * 5));
+                //_audioProcessor.RegisterPlayedFrame(frame);
                 _audioSource.clip.SetData(VoiceChatUtils.ShortToFloat(frame), _endOfData);
                 _endOfData += _audioFormat.SamplesPerFrame;
                 if (_endOfData >= _audioSource.clip.samples) _endOfData = 0;

@@ -1,3 +1,6 @@
+using System.Collections;
+using UnityEngine;
+
 namespace VoiceChat
 {
     /// <summary>
@@ -34,5 +37,18 @@ namespace VoiceChat
         /// </summary>
         /// <param name="frame">The frame to register.</param>
         public abstract void RegisterPlayedFrame(short[] frame);
+        
+        /// <summary>
+        /// Wait for a given amount of time before calling <see cref="RegisterPlayedFrame"/>
+        /// This is supposed to be called as a coroutine in from a Unity monobehaviour
+        /// </summary>
+        /// <param name="frame">The frame to register.</param>
+        /// <param name="delayMs">The delay before we register the frame.</param>
+        /// <returns>An enumerator for the StartCoroutine method of monobehaviour./></returns>
+        public IEnumerator RegisterPlayedFrameDelayed(short[] frame, int delayMs)
+        {
+            yield return new WaitForSecondsRealtime(delayMs / 1000f);
+            RegisterPlayedFrame(frame);
+        }
     }
 }

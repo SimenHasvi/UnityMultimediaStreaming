@@ -247,7 +247,7 @@ MonoBehaviour:
   denoise: 1
   automaticGainControl: 1
   voiceActivityDetector: 1
-  acousticEchoCancellation: 0
+  acousticEchoCancellation: 1
   doCompression: 1
   bitrate: 14000
   complexity: 10
