@@ -1,6 +1,4 @@
-using UnityEditor;
-
-namespace Version3
+namespace VoiceChat
 {
     /// <summary>
     /// Abstract module for handling networking.
@@ -20,13 +18,13 @@ namespace Version3
         /// <summary>
         /// The audio format for both sent and received audio.
         /// </summary>
-        protected AudioFormat AudioFormat { get; }
+        protected AudioFormat AudioFormat { get; set; }
         
         /// <summary>
         /// The audio frame buffer to write to, this is where you will get the downloaded frames from.
         /// </summary>
-        protected AudioFrameBuffer AudioFrameBuffer { get; }
-        
+        public AudioFrameBuffer AudioFrameBuffer { get; set; }
+
         /// <summary>
         /// The audio codec used in the transmission. Can be null for uncompressed data.
         /// </summary>
@@ -38,12 +36,13 @@ namespace Version3
         /// <param name="id">Your unique id so people can tell who the frames come from.</param>
         /// <param name="serverUri">The server URI.</param>
         /// <param name="audioCodec">The audio codec for compression.</param>
-        protected VoiceChatNetworkModule(int id, string serverUri, AudioCodec audioCodec = null)
+        protected VoiceChatNetworkModule(int id, string serverUri, AudioCodec audioCodec)
         {
             Id = id;
             ServerUri = serverUri;
+            AudioCodec = audioCodec;
         }
-        
+
         /// <summary>
         /// Start listening for frames. The result is written in the given buffer.
         /// This should create a new thread to run on. 

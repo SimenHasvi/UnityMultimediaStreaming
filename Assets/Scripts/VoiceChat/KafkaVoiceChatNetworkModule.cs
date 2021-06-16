@@ -5,12 +5,12 @@ using KafkaNet;
 using KafkaNet.Model;
 using KafkaNet.Protocol;
 
-namespace Version3
+namespace VoiceChat
 {
     /// <summary>
     /// Networking module using kafka as the backend
     /// </summary>
-    public class KafkaVoiceChatNetworkingModule : VoiceChatNetworkModule
+    public class KafkaVoiceChatNetworkModule : VoiceChatNetworkModule
     {
         private string ServerTopic;
         private Consumer _consumer;
@@ -18,7 +18,7 @@ namespace Version3
         private Producer _producer;
         private Thread _consumeThread;
         
-        public KafkaVoiceChatNetworkingModule(int id, string serverUri, string serverTopic, AudioCodec audioCodec = null) : base(id, serverUri, audioCodec)
+        public KafkaVoiceChatNetworkModule(int id, string serverUri, string serverTopic, AudioCodec audioCodec) : base(id, serverUri, audioCodec)
         {
             ServerTopic = serverTopic;
             var options = new ConsumerOptions(serverTopic, new BrokerRouter(new KafkaOptions(new Uri(ServerUri))));
@@ -28,11 +28,13 @@ namespace Version3
                 .Select(x => new OffsetPosition(x.PartitionId, x.Offsets.Max())).ToArray();
             _consumer = new Consumer(options, offsets);
             _consumeThread = new Thread(Consume);
-            _producer = new Producer(new BrokerRouter(new KafkaOptions(new Uri(serverUri))));
+            _producer = new Producer(new BrokerRouter(new KafkaOptions(new Uri(ServerUri))));
         }
 
         public override void StartListenForFrames(AudioFormat audioFormat, AudioFrameBuffer audioFrameBuffer)
         {
+            AudioFormat = audioFormat;
+            AudioFrameBuffer = audioFrameBuffer;
             _consumeThread.Start();
         }
 

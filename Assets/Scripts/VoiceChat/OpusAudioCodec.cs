@@ -2,7 +2,7 @@ using System;
 using Concentus.Enums;
 using Concentus.Structs;
 
-namespace Version3
+namespace VoiceChat
 {
     public class OpusAudioCodec : AudioCodec
     {

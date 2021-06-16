@@ -1,4 +1,4 @@
-namespace Version3
+namespace VoiceChat
 {
     /// <summary>
     /// Contains information about a given audio format such as sample rate and frames.

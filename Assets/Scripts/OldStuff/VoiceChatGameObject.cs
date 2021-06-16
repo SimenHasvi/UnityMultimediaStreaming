@@ -13,7 +13,7 @@ using KafkaNet.Protocol;
 using UnityEngine;
 
 [RequireComponent(typeof(AudioSource))]
-public class VoiceChat : MonoBehaviour
+public class VoiceChatGameObject : MonoBehaviour
 {
     [Header("Debug stuff")]
     public bool verbose;

@@ -1,7 +1,7 @@
 using System;
 using System.Runtime.InteropServices;
 
-namespace Version3
+namespace VoiceChat
 {
     /// <inheritdoc />
     public class SpeexDspAudioProcessor : AudioProcessor

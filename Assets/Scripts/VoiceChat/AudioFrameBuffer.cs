@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Version3
+namespace VoiceChat
 {
     /// <summary>
     /// A simple class to buffer frames easily.

@@ -1,4 +1,4 @@
-namespace Version3
+namespace VoiceChat
 {
     /// <summary>
     /// Abstract class for an audio codec, providing methods for compression.
