@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using AudioProcessingModuleCs.Media;
-using AudioProcessingModuleCs.Media.Dsp;
 using AudioProcessingModuleCs.Media.Dsp.WebRtc;
 using Concentus.Enums;
 using Concentus.Structs;
@@ -83,12 +82,12 @@ public class VoiceChat : MonoBehaviour
         _producer = new Producer(new BrokerRouter(new KafkaOptions(new Uri(serverUri))));
         
         // set up encoder/decoder/enchacer
-        // sampling rate can be 8000, 12000, 16000, 24000, or 48000
+        // sampling rate for codec can be 8000, 12000, 16000, 24000, or 48000
+        // for audio processing module it can be 8000, 16000, or 32000
         _audioFormat = new AudioFormat(sampleRate, millisecondsPerFrame, 1, sizeof(short) * 8);
         _encoder = new OpusEncoder(_audioFormat.SamplesPerSecond, _audioFormat.Channels, compressionMode) {Bitrate = bitrate, UseVBR = true, SignalType = OpusSignal.OPUS_SIGNAL_VOICE, ForceMode = OpusMode.MODE_SILK_ONLY, Complexity = complexity};
         _decoder = new OpusDecoder(_audioFormat.SamplesPerSecond, _audioFormat.Channels);
-        var resampleFilter = new ResampleFilter(_audioFormat, _audioFormat);
-        _enhancer = new WebRtcFilter(expectedDelay, filterLength, _audioFormat, _audioFormat, acousticEchoCancellation, noiseSuppression, automaticGainControl, resampleFilter);
+        _enhancer = new WebRtcFilter(expectedDelay, filterLength, _audioFormat, _audioFormat, acousticEchoCancellation, noiseSuppression, automaticGainControl);
         Debug.Log("encoder sample rate: " + _encoder.SampleRate + ", channels: " + _encoder.NumChannels + ", compression mode: " + _encoder.Application + ", bitrate: " + _encoder.Bitrate);
         Debug.Log("decoder sample rate: " + _decoder.SampleRate + ", channels: " + _decoder.NumChannels);
 
@@ -148,7 +147,7 @@ public class VoiceChat : MonoBehaviour
         if (_frameBuffers[headerId].Count > _audioFormat.FramesPerSecond / 4)
         {
             Debug.LogWarning("Buffer " + headerId + " is full! Skipping frames..");
-            while (_frameBuffers[headerId].Count > _audioFormat.FramesPerSecond / 8) _frameBuffers[headerId].Dequeue();
+            lock (_frameBuffers[headerId]) while (_frameBuffers[headerId].Count > _audioFormat.FramesPerSecond / 8) _frameBuffers[headerId].Dequeue();
         }
         _frameBuffers[headerId].Enqueue(frame);
         if (verbose) Debug.Log("added frame to buffer: " + headerId + ", length is now: " + _frameBuffers[headerId].Count + " / " + _audioFormat.FramesPerSecond / 4);
@@ -159,11 +158,14 @@ public class VoiceChat : MonoBehaviour
         var combinedFrame = new short[_audioFormat.SamplesPerFrame];
         foreach (var frameBuffer in _frameBuffers.Values)
         {
-            if (frameBuffer.Count <= 0) continue;
-            var frame = frameBuffer.Dequeue();
-            for (var i = 0; i < combinedFrame.Length; i++)
+            lock (frameBuffer)
             {
-                combinedFrame[i] += (short)(frame[i] * playbackVolumeAmplification);
+                if (frameBuffer.Count <= 0) continue;
+                var frame = frameBuffer.Dequeue();
+                for (var i = 0; i < combinedFrame.Length; i++)
+                {
+                    combinedFrame[i] += (short)(frame[i] * playbackVolumeAmplification);
+                }
             }
         }
         _enhancer.RegisterFramePlayed(ToByteStream(combinedFrame));
@@ -235,5 +237,11 @@ public class VoiceChat : MonoBehaviour
         var bytes = new byte[shorts.Length * sizeof(short)];
         Buffer.BlockCopy(shorts, 0, bytes, 0, bytes.Length);
         return bytes;
+    }
+
+    private void OnDisable()
+    {
+        _consumeThread.Abort();
+        _consumeThread.Join();
     }
 }
