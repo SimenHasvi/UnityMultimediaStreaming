@@ -42,6 +42,7 @@ namespace VoiceChat
             MillisecondsPerFrame = millisecondsPerFrame;
             FramesPerSecond = 1000 / MillisecondsPerFrame;
             SamplesPerFrame = samplingRate / FramesPerSecond;
+            Channels = channels;
         }
     }
 }
