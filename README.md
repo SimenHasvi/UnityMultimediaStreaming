@@ -2,7 +2,7 @@
 
 Simple voice chat implementation for Unity using the Opus codec with Kafka.
 
-This simple applications demonstrates a fast and simple voice-chat function for Unity, using the Opus codec. In this implementation a Kafka server is used, but it can easily be modified to use other networking solutions as well.
+This simple plugin demonstrates a fast and simple voice-chat function for Unity, using the Opus codec. In this implementation a Kafka server is used, but it can easily be modified to use other networking solutions as well.
 
 To use it, add clone this repo to your Unity project, Then add the VoiceChat script to a GameObject. You can now fill in the nessesary settings there.
 You also need to allow unsafe code in the player settings.
