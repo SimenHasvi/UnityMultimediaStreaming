@@ -35,10 +35,8 @@ namespace VoiceChat
         private AudioPlayback _audioPlayback;
         private AudioCodec _audioCodec;
         private VoiceChatNetworkModule _networkModule;
-        private const int FramesInAudioSource = 50;
-        private int _endOfData = 0;
-        
-        
+
+
         private void Start()
         {
             VoiceChatUtils.EnableUnityLogging(true);

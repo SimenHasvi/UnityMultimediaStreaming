@@ -34,12 +34,20 @@ namespace VoiceChat
             _audioSource.Play();
             StartCoroutine(PlayFramesFromBuffer());
         }
-
+        
+        /// <summary>
+        /// Mute the user with this id.
+        /// </summary>
+        /// <param name="id">The user of this id will not be played.</param>
         public void Mute(int id)
         {
             _muted.Add(id);
         }
 
+        /// <summary>
+        /// Unmute the user.
+        /// </summary>
+        /// <param name="id">The id of the user to unmute.</param>
         public void Unmute(int id)
         {
             _muted.Remove(id);
