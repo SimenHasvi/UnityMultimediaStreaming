@@ -44,5 +44,10 @@ namespace VoiceChat
             SamplesPerFrame = samplingRate / FramesPerSecond;
             Channels = channels;
         }
+
+        public override string ToString()
+        {
+            return "AudioFormat[sampling rate:" + SamplingRate + ", ms per frame:" + MillisecondsPerFrame + "]";
+        }
     }
 }

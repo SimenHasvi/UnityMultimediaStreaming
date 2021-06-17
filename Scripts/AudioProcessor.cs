@@ -40,7 +40,8 @@ namespace VoiceChat
         
         /// <summary>
         /// Wait for a given amount of time before calling <see cref="RegisterPlayedFrame"/>
-        /// This is supposed to be called as a coroutine in from a Unity monobehaviour
+        /// This is supposed to be called as a coroutine in from a Unity monobehaviour object.
+        /// This is useful as we can register the frame after it has been scheduled to play. Accounting for the delay.
         /// </summary>
         /// <param name="frame">The frame to register.</param>
         /// <param name="delayMs">The delay before we register the frame.</param>

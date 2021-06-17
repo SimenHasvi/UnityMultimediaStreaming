@@ -2,7 +2,7 @@ namespace VoiceChat
 {
     
     /// <summary>
-    /// Very simple networking module that will just write to its own local buffer.ss
+    /// Very simple networking module that will just write to its own local buffer.
     /// Good for testing stuff.
     /// </summary>
     public class LocalVoiceChatNetworkModule : VoiceChatNetworkModule

@@ -41,6 +41,7 @@ namespace VoiceChat
             Id = id;
             ServerUri = serverUri;
             AudioCodec = audioCodec;
+            VoiceChatUtils.Log(VoiceChatUtils.LogType.VerboseInfo, "Created " + this);
         }
 
         /// <summary>
@@ -62,5 +63,10 @@ namespace VoiceChat
         /// </summary>
         /// <param name="frame">The frame to send.</param>
         public abstract void SendFrame(short[] frame);
+
+        public override string ToString()
+        {
+            return base.ToString() + "[id:"+ Id + ", serverUri:" + ServerUri + ", codec:" + AudioCodec;
+        }
     }
 }
