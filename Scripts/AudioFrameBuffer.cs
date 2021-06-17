@@ -86,7 +86,6 @@ namespace VoiceChat
             var combinedFrame = new short[_audioFormat.SamplesPerFrame];
             foreach (var frameBuffer in _frameBuffers)
             {
-                if (excludeId.Contains(frameBuffer.Key)) continue;
                 lock (frameBuffer.Value)
                 {
                     if (frameBuffer.Value.Count <= 0)
@@ -95,6 +94,7 @@ namespace VoiceChat
                         continue;
                     }
                     var frame = frameBuffer.Value.Dequeue();
+                    if (excludeId.Contains(frameBuffer.Key)) continue;
                     for (var i = 0; i < combinedFrame.Length; i++)
                     {
                         combinedFrame[i] += frame[i];

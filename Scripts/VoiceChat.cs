@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -97,6 +98,11 @@ namespace VoiceChat
                 if (_endOfData >= _audioSource.clip.samples) _endOfData = 0;
                 while (VoiceChatUtils.CircularDistanceTo(_audioSource.timeSamples, _endOfData, _audioSource.clip.samples) > _audioFormat.SamplesPerFrame * 5) yield return null;
             }
+        }
+
+        private void OnDisable()
+        {
+            _networkModule.StopListenForFrames();
         }
     }
 }

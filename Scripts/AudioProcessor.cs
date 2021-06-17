@@ -14,12 +14,22 @@ namespace VoiceChat
         protected AudioFormat AudioFormat { get; }
 
         /// <summary>
+        /// Describes which features of this audio processor is enabled/disabled.
+        /// </summary>
+        public bool Denoise, Agc, Vad, Aec;
+
+        /// <summary>
         /// Simple constructor.
         /// </summary>
         /// <param name="audioFormat">The format we process</param>
         protected AudioProcessor(AudioFormat audioFormat, bool denoise, bool agc, bool vad, bool aec)
         {
             AudioFormat = audioFormat;
+            Denoise = denoise;
+            Agc = agc;
+            Vad = vad;
+            Aec = aec;
+            VoiceChatUtils.Log(VoiceChatUtils.LogType.VerboseInfo, "Created " + this);
         }
 
         /// <summary>
@@ -50,6 +60,11 @@ namespace VoiceChat
         {
             yield return new WaitForSecondsRealtime(delayMs / 1000f);
             RegisterPlayedFrame(frame);
+        }
+
+        public override string ToString()
+        {
+            return base.ToString() + "[denoise:" + Denoise + ", agc:" + Agc + ", vad:" + Vad + ", aec:" + Aec + ", format:" + AudioFormat + "]";
         }
     }
 }
