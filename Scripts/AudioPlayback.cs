@@ -1,4 +1,6 @@
+using System;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.PlayerLoop;
 using UnityEngine.UIElements;
@@ -15,6 +17,7 @@ namespace VoiceChat
         private AudioSource _audioSource;
         private AudioFormat _audioFormat;
         private AudioFrameBuffer _audioFrameBuffer;
+        private List<int> _muted = new List<int>();
 
         /// <summary>
         /// Start playing the audio.
@@ -32,6 +35,16 @@ namespace VoiceChat
             StartCoroutine(PlayFramesFromBuffer());
         }
 
+        public void Mute(int id)
+        {
+            _muted.Add(id);
+        }
+
+        public void Unmute(int id)
+        {
+            _muted.Remove(id);
+        }
+
         /// <summary>
         /// Plays frames from the buffer.
         /// It will add frames to the circular AudioSource buffer about 3 frames in advance.
@@ -41,7 +54,7 @@ namespace VoiceChat
         {
             while (true)
             {
-                PlayFrame(_audioFrameBuffer.GetNextFrameFromBuffer());
+                PlayFrame(_audioFrameBuffer.GetNextFrameFromBuffer(_muted.ToArray()));
                 while (VoiceChatUtils.CircularDistanceTo(_audioSource.timeSamples, _endOfData, _audioSource.clip.samples) > _audioFormat.SamplesPerFrame * 3) yield return null;
             }
         }

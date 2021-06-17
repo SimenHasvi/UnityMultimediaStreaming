@@ -60,6 +60,7 @@ namespace VoiceChat
             gameObject.AddComponent<AudioPlayback>();
             _audioPlayback = GetComponent<AudioPlayback>();
             _audioPlayback.Play(_audioFormat, _audioFrameBuffer);
+            if (!playSelf) _audioPlayback.Mute(id);
             _mic = Microphone.Start(Microphone.devices[0], true, 50, sampleRate);
 
             StartCoroutine(SampleAudio());
