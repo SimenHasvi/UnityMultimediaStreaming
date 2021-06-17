@@ -42,6 +42,19 @@ namespace VoiceChat
         public abstract bool ProcessFrame(short[] frame);
 
         /// <summary>
+        /// Process a frame with the configured settings.
+        /// Do this BEFORE you send the the recorded frame.
+        /// <remarks>
+        /// If you use this rather than <see cref="ProcessFrame(short[])"/>, you should NOT register the frame when playing it.
+        /// As we already have the frame played here.
+        /// </remarks>
+        /// </summary>
+        /// <param name="frame">The frame to process.</param>
+        /// <param name="echoFrame">The audio that was played at the same time as the input frame was recorded.</param>
+        /// <returns>VAD result, is always true if no VAD.</returns>
+        public abstract bool ProcessFrame(short[] frame, short[] echoFrame);
+
+        /// <summary>
         /// Register a frame that you play.
         /// This is used by the echo canceller.
         /// </summary>

@@ -45,6 +45,16 @@ namespace VoiceChat
             Channels = channels;
         }
 
+        /// <summary>
+        /// Give the number of samples in the given time span.
+        /// </summary>
+        /// <param name="ms">The time span in milliseconds</param>
+        /// <returns>The number of samples in the time span.</returns>
+        public int SamplesInMs(int ms)
+        {
+            return SamplingRate / (1000 / ms);
+        }
+
         public override string ToString()
         {
             return "AudioFormat[sampling rate:" + SamplingRate + ", ms per frame:" + MillisecondsPerFrame + "]";

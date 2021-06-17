@@ -25,7 +25,7 @@ namespace VoiceChat
         /// The backend data structure to store the frames, you should never have to deal with this.
         /// </summary>
         private readonly Dictionary<int, Queue<short[]>> _frameBuffers = new Dictionary<int, Queue<short[]>>();
-        
+
         /// <summary>
         /// Create the buffer object.
         /// </summary>
@@ -34,6 +34,26 @@ namespace VoiceChat
         {
             _audioFormat = audioFormat;
             if (_audioFormat.MillisecondsPerFrame <= 100) SetBufferSizeMs(500); //allow half a second by default
+        }
+
+        /// <summary>
+        /// Get the count of the buffer.
+        /// If there are multiple users this is the longest of them all.
+        /// </summary>
+        /// <returns>Length of the buffer.</returns>
+        public int Count()
+        {
+            return _frameBuffers.Values.Select(b => b.Count).Prepend(0).Max();
+        }
+
+        /// <summary>
+        /// Length of the buffer.
+        /// </summary>
+        /// <param name="id">The id of the buffer to get the length from.</param>
+        /// <returns>The length.</returns>
+        public int Count(int id)
+        {
+            return _frameBuffers[id].Count;
         }
         
         /// <summary>
@@ -68,10 +88,10 @@ namespace VoiceChat
                 _frameBuffers.Add(id, new Queue<short[]>());
             }
 
-            if (_frameBuffers[id].Count > MaxFramesInBuffer)
+            if (Count(id) > MaxFramesInBuffer)
             {
                 VoiceChatUtils.Log(VoiceChatUtils.LogType.VerboseInfo, "Buffer for user " + id + " is full! Skipping frames.");
-                while (_frameBuffers[id].Count > MaxFramesInBuffer / 2) _frameBuffers[id].Dequeue();
+                while (Count(id) > MaxFramesInBuffer / 2) _frameBuffers[id].Dequeue();
             }
             _frameBuffers[id].Enqueue(frame);
         }

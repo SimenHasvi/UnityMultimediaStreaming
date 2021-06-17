@@ -240,14 +240,15 @@ MonoBehaviour:
   id: 1
   serverUri: kafka://virtualclassroom-server.cs.hku.hk:9092
   serverTopic: vcr-room-audio-15
-  localNetwork: 0
+  localNetwork: 1
   sampleRate: 16000
   millisecondsPerFrame: 20
   millisecondsInBuffer: 500
   denoise: 1
   automaticGainControl: 1
   voiceActivityDetector: 1
-  acousticEchoCancellation: 0
+  acousticEchoCancellation: 1
+  aecFilterLengthMs: 100
   doCompression: 1
   bitrate: 14000
   complexity: 10

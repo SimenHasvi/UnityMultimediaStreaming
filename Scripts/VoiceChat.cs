@@ -7,23 +7,24 @@ namespace VoiceChat
 {
     public class VoiceChat : MonoBehaviour
     {
-        public bool playSelf;
-        public int id;
+        public bool playSelf = false;
+        public int id = 0;
         public string serverUri;
         public string serverTopic;
-        public bool localNetwork;
+        public bool localNetwork = true;
         
-        public int sampleRate;
-        public int millisecondsPerFrame;
-        public int millisecondsInBuffer;
-        public bool denoise;
-        public bool automaticGainControl;
-        public bool voiceActivityDetector;
-        public bool acousticEchoCancellation;
+        public int sampleRate = 16000;
+        public int millisecondsPerFrame = 20;
+        public int millisecondsInBuffer = 500;
+        public bool denoise = true;
+        public bool automaticGainControl = true;
+        public bool voiceActivityDetector = true;
+        public bool acousticEchoCancellation = true;
+        public int aecFilterLengthMs = 100;
 
-        public bool doCompression;
-        public int bitrate;
-        public int complexity;
+        public bool doCompression = true;
+        public int bitrate = 14000;
+        public int complexity = 10;
 
         private int _lastPos, _pos = 0;
         private AudioClip _mic;
@@ -31,7 +32,7 @@ namespace VoiceChat
         private AudioFrameBuffer _audioFrameBuffer;
         private AudioFormat _audioFormat;
         private AudioProcessor _audioProcessor;
-        private AudioSource _audioSource;
+        private AudioPlayback _audioPlayback;
         private AudioCodec _audioCodec;
         private VoiceChatNetworkModule _networkModule;
         private const int FramesInAudioSource = 50;
@@ -50,17 +51,18 @@ namespace VoiceChat
             if (doCompression) _audioCodec = new OpusAudioCodec(_audioFormat, bitrate, complexity);
             else _audioCodec = new DummyAudioCodec(_audioFormat);
             
-            _audioProcessor = new SpeexDspAudioProcessor(_audioFormat, denoise, automaticGainControl, voiceActivityDetector, acousticEchoCancellation);
+            _audioProcessor = new SpeexDspAudioProcessor(_audioFormat, denoise, automaticGainControl, voiceActivityDetector, acousticEchoCancellation, aecFilterLengthMs);
 
             if (localNetwork) _networkModule = new LocalVoiceChatNetworkModule(_audioCodec);
             else _networkModule = new KafkaVoiceChatNetworkModule(id, serverUri, serverTopic, _audioCodec);
             _networkModule.StartListenForFrames(_audioFormat, _audioFrameBuffer);
             
-            _audioSource = GetComponent<AudioSource>();
+            gameObject.AddComponent<AudioPlayback>();
+            _audioPlayback = GetComponent<AudioPlayback>();
+            _audioPlayback.Play(_audioFormat, _audioFrameBuffer);
             _mic = Microphone.Start(Microphone.devices[0], true, 50, sampleRate);
 
             StartCoroutine(SampleAudio());
-            StartCoroutine(PlayAudio());
         }
         
         private IEnumerator SampleAudio()
@@ -78,25 +80,8 @@ namespace VoiceChat
                 _mic.GetData(frame, _lastPos);
                 _lastPos += frame.Length;
                 var shortFrame = VoiceChatUtils.FloatToShort(frame);
-                _audioProcessor.ProcessFrame(shortFrame);
+                _audioProcessor.ProcessFrame(shortFrame, _audioPlayback.GetLastPlayedFrame());
                 _networkModule.SendFrame(shortFrame);
-            }
-        }
-        
-        private IEnumerator PlayAudio()
-        {
-            _audioSource.clip = AudioClip.Create("voice_chat_clip", _audioFormat.SamplesPerFrame * FramesInAudioSource, 1, _audioFormat.SamplingRate, false);
-            _audioSource.loop = true;
-            _audioSource.Play();
-            while (true)
-            {
-                var frame = playSelf ? _networkModule.AudioFrameBuffer.GetNextFrameFromBuffer() : _networkModule.AudioFrameBuffer.GetNextFrameFromBuffer(id);
-                StartCoroutine(_audioProcessor.RegisterPlayedFrameDelayed(frame, _audioFormat.MillisecondsPerFrame * 5));
-                //_audioProcessor.RegisterPlayedFrame(frame);
-                _audioSource.clip.SetData(VoiceChatUtils.ShortToFloat(frame), _endOfData);
-                _endOfData += _audioFormat.SamplesPerFrame;
-                if (_endOfData >= _audioSource.clip.samples) _endOfData = 0;
-                while (VoiceChatUtils.CircularDistanceTo(_audioSource.timeSamples, _endOfData, _audioSource.clip.samples) > _audioFormat.SamplesPerFrame * 5) yield return null;
             }
         }
 

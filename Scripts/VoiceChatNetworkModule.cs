@@ -29,7 +29,7 @@ namespace VoiceChat
         /// The audio codec used in the transmission. Can be null for uncompressed data.
         /// </summary>
         protected AudioCodec AudioCodec { get; }
-        
+
         /// <summary>
         /// Constructor for the networking module.
         /// </summary>

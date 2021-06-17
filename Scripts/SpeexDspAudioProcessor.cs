@@ -12,15 +12,18 @@ namespace VoiceChat
         private IntPtr _preprocessState;
         private IntPtr _aecState;
         
-        public SpeexDspAudioProcessor(AudioFormat audioFormat, bool denoise, bool agc, bool vad, bool aec) : base(audioFormat, denoise, agc, vad, aec)
+        public SpeexDspAudioProcessor(AudioFormat audioFormat, bool denoise, bool agc, bool vad, bool aec, int aecFilterLengthMs = 100) : base(audioFormat, denoise, agc, vad, aec)
         {
             _preprocessState = SpeexDSPNative.speex_preprocess_state_init(AudioFormat.SamplesPerFrame, AudioFormat.SamplingRate);
             PreprocessCtlRequest.Request(_preprocessState, denoise, agc, vad);
             PreprocessCtlRequest.SetAgcLevel(_preprocessState, 100000f);
             if (_performAec = aec)
             {
-                _aecState = SpeexDSPNative.speex_echo_state_init(AudioFormat.SamplesPerFrame, 100);
+                // speexdsp recommends 100ms filter length for a small room, but make sure it is not too long
+                _aecState = SpeexDSPNative.speex_echo_state_init(AudioFormat.SamplesPerFrame, AudioFormat.SamplesInMs(aecFilterLengthMs));
                 PreprocessCtlRequest.SetAecState(_preprocessState, _aecState);
+                VoiceChatUtils.Log(VoiceChatUtils.LogType.VerboseInfo, "Enabled aec with frame size" + AudioFormat.SamplesPerFrame + " and filter length ms " + aecFilterLengthMs);
+                if (Math.Sqrt(AudioFormat.SamplesPerFrame) % 1 != 0) VoiceChatUtils.Log(VoiceChatUtils.LogType.Warning, "Optimal aec frame size should be a power of 2 in the order of 20ms.");
             }
         }
         
@@ -28,6 +31,14 @@ namespace VoiceChat
         {
             var vadResult = SpeexDSPNative.speex_preprocess_run(_preprocessState, frame);
             if (_performAec) SpeexDSPNative.speex_echo_capture(_aecState, frame, frame);
+            return vadResult == 0;
+        }
+
+        // if you use this dont register the echo frame! We already have it here.
+        public override bool ProcessFrame(short[] frame, short[] echoFrame)
+        {
+            var vadResult = SpeexDSPNative.speex_preprocess_run(_preprocessState, frame);
+            if (_performAec) SpeexDSPNative.speex_echo_cancellation(_aecState, frame, echoFrame, frame);
             return vadResult == 0;
         }
 
