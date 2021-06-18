@@ -84,7 +84,7 @@ namespace VoiceChat
             _endOfData += _audioFormat.SamplesPerFrame;
             if (_endOfData >= _audioSource.clip.samples) _endOfData = 0;
         }
-        
+
         /// <summary>
         /// Get the last played samples. This should match closely to what is played by the soundcard.
         /// Ideal for the use in echo cancellation.
@@ -92,7 +92,7 @@ namespace VoiceChat
         /// <returns> The last played samples, the length is that of a frame.</returns>
         public short[] GetLastPlayedFrame()
         {
-            var playbackPos = _audioSource.timeSamples - _audioFormat.SamplesPerFrame;
+            var playbackPos = _audioSource.timeSamples - _audioFormat.SamplesPerFrame * 2;
             if (playbackPos < 0) playbackPos = _audioSource.clip.samples + playbackPos;
             var prevFrame = new float[_audioFormat.SamplesPerFrame];
             _audioSource.clip.GetData(prevFrame, playbackPos);
