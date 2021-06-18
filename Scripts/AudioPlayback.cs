@@ -29,7 +29,7 @@ namespace VoiceChat
             _audioFormat = audioFormat;
             _audioFrameBuffer = audioFrameBuffer;
             _audioSource = GetComponent<AudioSource>();
-            _audioSource.clip = AudioClip.Create("voice_chat_clip", _audioFormat.SamplesPerFrame * 10, 1, _audioFormat.SamplingRate, false);
+            _audioSource.clip = AudioClip.Create("voice_chat_clip", _audioFormat.SamplesPerFrame * 20, 1, _audioFormat.SamplingRate, false);
             _audioSource.loop = true;
             _audioSource.Play();
             StartCoroutine(PlayFramesFromBuffer());
@@ -63,7 +63,7 @@ namespace VoiceChat
             while (true)
             {
                 PlayFrame(_audioFrameBuffer.GetNextFrameFromBuffer(_muted.ToArray()));
-                while (VoiceChatUtils.CircularDistanceTo(_audioSource.timeSamples, _endOfData, _audioSource.clip.samples) > _audioFormat.SamplesPerFrame * 3) yield return null;
+                while (VoiceChatUtils.CircularDistanceTo(_audioSource.timeSamples, _endOfData, _audioSource.clip.samples) > _audioFormat.SamplesPerFrame * 10) yield return null;
             }
         }
 

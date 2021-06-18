@@ -110,7 +110,7 @@ namespace VoiceChat
                 {
                     if (frameBuffer.Value.Count <= 0)
                     {
-                        VoiceChatUtils.Log(VoiceChatUtils.LogType.VerboseInfo, "Buffer for user " + frameBuffer.Key + " is empty!");
+                        //VoiceChatUtils.Log(VoiceChatUtils.LogType.VerboseInfo, "Buffer for user " + frameBuffer.Key + " is empty!");
                         continue;
                     }
                     var frame = frameBuffer.Value.Dequeue();
