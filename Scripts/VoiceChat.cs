@@ -39,6 +39,7 @@ namespace VoiceChat
 
         private void Start()
         {
+            Application.targetFrameRate = 45;
             VoiceChatUtils.EnableUnityLogging(true);
             
             _audioFormat = new AudioFormat(sampleRate, millisecondsPerFrame);
@@ -79,7 +80,8 @@ namespace VoiceChat
                 _mic.GetData(frame, _lastPos);
                 _lastPos += frame.Length;
                 var shortFrame = VoiceChatUtils.FloatToShort(frame);
-                _audioProcessor.ProcessFrame(shortFrame, _audioPlayback.GetLastPlayedFrame());
+                if (acousticEchoCancellation) _audioProcessor.ProcessFrame(shortFrame, _audioPlayback.GetLastPlayedFrame());
+                else _audioProcessor.ProcessFrame(shortFrame);
                 _networkModule.SendFrame(shortFrame);
             }
         }

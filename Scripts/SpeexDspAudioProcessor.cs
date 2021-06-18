@@ -8,9 +8,9 @@ namespace VoiceChat
     /// <inheritdoc />
     public class SpeexDspAudioProcessor : AudioProcessor
     {
-        private bool _performAec = false;
-        private IntPtr _preprocessState;
-        private IntPtr _aecState;
+        private readonly bool _performAec = false;
+        private readonly IntPtr _preprocessState;
+        private readonly IntPtr _aecState;
         
         public SpeexDspAudioProcessor(AudioFormat audioFormat, bool denoise, bool agc, bool vad, bool aec, int aecFilterLengthMs = 100) : base(audioFormat, denoise, agc, vad, aec)
         {
