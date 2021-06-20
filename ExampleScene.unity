@@ -226,7 +226,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1710431353
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -347,6 +347,9 @@ MonoBehaviour:
   serverUri: kafka://virtualclassroom-server.cs.hku.hk:9092
   serverTopic: vcr-room-audio-15
   localNetwork: 1
+  compressionQuality: 40
+  resolution: 1
+  requestedFPS: 20
 --- !u!1 &1834242297
 GameObject:
   m_ObjectHideFlags: 0
@@ -358,13 +361,14 @@ GameObject:
   - component: {fileID: 1834242299}
   - component: {fileID: 1834242300}
   - component: {fileID: 1834242298}
+  - component: {fileID: 1834242301}
   m_Layer: 0
   m_Name: VoiceChat
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &1834242298
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -377,7 +381,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fb5e212b35b1a3733afca06767a1a299, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playSelf: 0
+  playSelf: 1
   id: 1
   serverUri: kafka://virtualclassroom-server.cs.hku.hk:9092
   serverTopic: vcr-room-audio-15
@@ -385,10 +389,10 @@ MonoBehaviour:
   sampleRate: 16000
   millisecondsPerFrame: 20
   millisecondsInBuffer: 500
-  denoise: 1
-  automaticGainControl: 1
-  voiceActivityDetector: 1
-  acousticEchoCancellation: 1
+  denoise: 0
+  automaticGainControl: 0
+  voiceActivityDetector: 0
+  acousticEchoCancellation: 0
   aecFilterLengthMs: 100
   doCompression: 1
   bitrate: 14000
@@ -503,6 +507,31 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+--- !u!114 &1834242301
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1834242297}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4fb36ae0af734049a5156b7443707b40, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  clipToPlay: {fileID: 8300000, guid: 8f6c095f6a01ba17d805dd5fc0058ca2, type: 3}
+  id: 2
+  serverUri: kafka://virtualclassroom-server.cs.hku.hk:9092
+  serverTopic: vcr-room-audio-15
+  sampleRate: 16000
+  millisecondsPerFrame: 20
+  millisecondsInBuffer: 500
+  denoise: 0
+  automaticGainControl: 0
+  voiceActivityDetector: 0
+  doCompression: 1
+  bitrate: 14000
+  complexity: 10
 --- !u!1 &2021057158
 GameObject:
   m_ObjectHideFlags: 0

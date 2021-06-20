@@ -64,8 +64,8 @@ namespace VoiceChat
             VoiceChatUtils.Log(VoiceChatUtils.LogType.Info, "Starting kafka consumer on server: " + ServerUri + " topic: " + _serverTopic + " " + _consumer.GetOffsetPosition()[0]);
             foreach (var message in _consumer.Consume())
             {
-                var packet = message.Value;
-                AudioFrameBuffer.AddFrameToBuffer(AudioCodec.Decode(packet.Skip(1).ToArray()), Convert.ToInt32(packet[0]));
+                var headerId = Convert.ToInt32(message.Value[0]);
+                AudioFrameBuffer.AddFrameToBuffer(AudioCodec.Decode(message.Value.Skip(1).ToArray(), headerId), headerId);
             }
         }
     }

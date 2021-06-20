@@ -37,6 +37,15 @@ namespace VoiceChat
         }
 
         /// <summary>
+        /// Get the users with a buffer.
+        /// </summary>
+        /// <returns>List of the users.</returns>
+        public IEnumerable<int> GetUsers()
+        {
+            return _frameBuffers.Keys;
+        }
+
+        /// <summary>
         /// Get the count of the buffer.
         /// If there are multiple users this is the longest of them all.
         /// </summary>
@@ -87,8 +96,7 @@ namespace VoiceChat
                 VoiceChatUtils.Log(VoiceChatUtils.LogType.VerboseInfo, "Created a new buffer for user: " + id);
                 _frameBuffers.Add(id, new Queue<short[]>());
             }
-
-            if (Count(id) > MaxFramesInBuffer)
+            else if (Count(id) > MaxFramesInBuffer)
             {
                 VoiceChatUtils.Log(VoiceChatUtils.LogType.VerboseInfo, "Buffer for user " + id + " is full! Skipping frames.");
                 while (Count(id) > MaxFramesInBuffer / 2) _frameBuffers[id].Dequeue();
@@ -104,15 +112,10 @@ namespace VoiceChat
         public short[] GetNextFrameFromBuffer(params int[] excludeId)
         {
             var combinedFrame = new short[_audioFormat.SamplesPerFrame];
-            foreach (var frameBuffer in _frameBuffers)
+            foreach (var frameBuffer in _frameBuffers.Where(frameBuffer => frameBuffer.Value.Count > 0))
             {
-                lock (frameBuffer.Value)
+                lock (frameBuffer.Value.Peek())
                 {
-                    if (frameBuffer.Value.Count <= 0)
-                    {
-                        //VoiceChatUtils.Log(VoiceChatUtils.LogType.VerboseInfo, "Buffer for user " + frameBuffer.Key + " is empty!");
-                        continue;
-                    }
                     var frame = frameBuffer.Value.Dequeue();
                     if (excludeId.Contains(frameBuffer.Key)) continue;
                     for (var i = 0; i < combinedFrame.Length; i++)

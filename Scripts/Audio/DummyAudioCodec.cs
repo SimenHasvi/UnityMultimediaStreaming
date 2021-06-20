@@ -8,12 +8,12 @@ namespace VoiceChat
     {
         public DummyAudioCodec(AudioFormat audioFormat, int bitrate = 0, int complexity = 0) : base(audioFormat, bitrate, complexity) {}
 
-        public override byte[] Encode(short[] frame)
+        public override byte[] Encode(short[] frame, int id = 0)
         {
             return VoiceChatUtils.ToByteStream(frame);
         }
 
-        public override short[] Decode(byte[] compressedFrame)
+        public override short[] Decode(byte[] compressedFrame, int id = 0)
         {
             return VoiceChatUtils.FromByteStream(compressedFrame);
         }

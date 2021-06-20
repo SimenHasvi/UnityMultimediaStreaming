@@ -3,19 +3,26 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.Windows.WebCam;
 using VoiceChat;
 
 namespace UnityVoiceChat.Scripts.Video
 {
     public class VideoStream : MonoBehaviour
     {
+        [Header("Network:")]
         public int id;
         public string serverUri;
         public string serverTopic;
         public bool localNetwork = true;
-
         [Range(1, 100)]
         public int compressionQuality = 50;
+
+        [Header("WebCamera")]
+        [Range(0, 10)]
+        public int resolution;
+        [Range(1, 60)]
+        public int requestedFPS;
 
         private Dictionary<int, Texture2D> _textures = new Dictionary<int, Texture2D>();
         private VideoStreamNetworkModule _videoStreamNetworkModule;
@@ -30,8 +37,8 @@ namespace UnityVoiceChat.Scripts.Video
             else _videoStreamNetworkModule = new KafkaVideoStreamNetworkModule(id, serverUri, serverTopic);
             _videoStreamNetworkModule.StartListenForFrames(_videoFrameBuffer);
 
-            _webCamera = new WebCamera(0);
-            StartCoroutine(_webCamera.Start(1));
+            _webCamera = new WebCamera(WebCamTexture.devices[0]);
+            StartCoroutine(_webCamera.Start(1, requestedFPS));
         }
 
         private void Update()

@@ -39,15 +39,17 @@ namespace VoiceChat
         /// Encode a single audio frame.
         /// </summary>
         /// <param name="frame">The frame to encode.</param>
+        /// <param name="id">The id of the users which the frame came from, used for stateful encoders.</param>
         /// <returns>The encoded frame frame.</returns>
-        public abstract byte[] Encode(short[] frame);
+        public abstract byte[] Encode(short[] frame, int id = 0);
 
         /// <summary>
         /// Decode a given encoded frame.
         /// </summary>
         /// <param name="compressedFrame"></param>
+        /// <param name="id">The id of the users which the frame came from, used for stateful encoders.</param>
         /// <returns>The decoded frame.</returns>
-        public abstract short[] Decode(byte[] compressedFrame);
+        public abstract short[] Decode(byte[] compressedFrame, int id = 0);
 
         public override string ToString()
         {

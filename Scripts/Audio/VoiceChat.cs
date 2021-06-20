@@ -39,7 +39,6 @@ namespace VoiceChat
 
         private void Start()
         {
-            Application.targetFrameRate = 45;
             VoiceChatUtils.EnableUnityLogging(true);
             
             _audioFormat = new AudioFormat(sampleRate, millisecondsPerFrame);
