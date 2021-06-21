@@ -1,7 +1,5 @@
 using System;
-using System.Collections;
 using System.Runtime.InteropServices;
-using UnityEngine;
 
 namespace VoiceChat
 {
@@ -12,11 +10,19 @@ namespace VoiceChat
         private readonly IntPtr _preprocessState;
         private readonly IntPtr _aecState;
         
-        public SpeexDspAudioProcessor(AudioFormat audioFormat, bool denoise, bool agc, bool vad, bool aec, int aecFilterLengthMs = 100) : base(audioFormat, denoise, agc, vad, aec)
+        public SpeexDspAudioProcessor(AudioFormat audioFormat, bool denoise, bool agc, bool vad, bool aec, bool deReverb, int aecFilterLengthMs = 100) : base(audioFormat, denoise, agc, vad, aec)
         {
             _preprocessState = SpeexDSPNative.speex_preprocess_state_init(AudioFormat.SamplesPerFrame, AudioFormat.SamplingRate);
-            PreprocessCtlRequest.Request(_preprocessState, denoise, agc, vad);
-            PreprocessCtlRequest.SetAgcLevel(_preprocessState, 100000f);
+            PreprocessCtlRequest.Configure
+            (
+                _preprocessState, 
+                denoise: denoise, 
+                agc: agc, 
+                vad: vad, 
+                deReverb: deReverb, 
+                agcTarget: 150000
+            );
+            VoiceChatUtils.Log(VoiceChatUtils.LogType.Info, PreprocessCtlRequest.PrintConfigurations(_preprocessState));
             if (_performAec = aec)
             {
                 // speexdsp recommends 100ms filter length for a small room, but make sure it is not too long
@@ -26,7 +32,7 @@ namespace VoiceChat
                 if (Math.Sqrt(AudioFormat.SamplesPerFrame) % 1 != 0) VoiceChatUtils.Log(VoiceChatUtils.LogType.Warning, "Optimal aec frame size should be a power of 2 in the order of 20ms.");
             }
         }
-        
+
         public override bool ProcessFrame(short[] frame)
         {
             var vadResult = SpeexDSPNative.speex_preprocess_run(_preprocessState, frame);
@@ -61,10 +67,11 @@ namespace VoiceChat
         /// <param name="denoise"> Enable denoise. </param>
         /// <param name="agc">Enable automatic gain control. Control the gain level with: <see cref="SetAgcLevel"/></param>
         /// <param name="vad">Enable voice activity detection.</param>
+        /// <param name="deReverb">Enable de reverb.</param>
         /// <returns>Whether the requests where successful or not.</returns>
-        public static bool Request(IntPtr preprocessState, bool denoise, bool agc, bool vad)
+        public static bool Enable(IntPtr preprocessState, bool denoise, bool agc, bool vad, bool deReverb)
         {
-            return SetDenoise(preprocessState, denoise) && SetAgc(preprocessState, agc) && SetVad(preprocessState, vad);
+            return SetDenoise(preprocessState, denoise) && SetAgc(preprocessState, agc) && SetVad(preprocessState, vad) && SetDeReverb(preprocessState, deReverb);
         }
     
         /// <summary>
@@ -105,30 +112,18 @@ namespace VoiceChat
             var result = SpeexDSPNative.speex_preprocess_ctl(preprocessState, 4, new IntPtr(&instruction));
             return result == 0;
         }
-    
+
         /// <summary>
-        /// Make a request to the given state to set the automatic gain control level.
-        /// Setting this will define the volume level in which the gain is altered to achieve.
+        /// Turns reverberation removal on or off.
         /// </summary>
         /// <param name="preprocessState">The state where we make the requests.</param>
-        /// <param name="level">The level to aim for. Im not sure on the scale as they make no reference in the documentation, but I found it to be good in the thousands. The default is 8000.</param>
+        /// <param name="value">To turn it on or off.</param>
         /// <returns>Whether the requests where successful or not.</returns>
-        public static bool SetAgcLevel(IntPtr preprocessState, float level)
+        public static bool SetDeReverb(IntPtr preprocessState, bool value = true)
         {
-            var result = SpeexDSPNative.speex_preprocess_ctl(preprocessState, 6, new IntPtr(&level));
+            var instruction = value ? 1 : 0;
+            var result = SpeexDSPNative.speex_preprocess_ctl(preprocessState, 8, new IntPtr(&instruction));
             return result == 0;
-        }
-    
-        /// <summary>
-        /// Get the agc level, use <see cref="SetAgcLevel"/> to set it.
-        /// </summary>
-        /// <param name="preprocessState">The state where we make the requests.</param>
-        /// <returns>The agc level.</returns>
-        public static float GetAgcLevel(IntPtr preprocessState)
-        {
-            var level = 0f;
-            SpeexDSPNative.speex_preprocess_ctl(preprocessState, 7, new IntPtr(&level));
-            return level;
         }
 
         /// <summary>
@@ -142,6 +137,157 @@ namespace VoiceChat
         {
             var result = SpeexDSPNative.speex_preprocess_ctl(preprocessState, 24, aecState);
             return result == 0;
+        }
+
+        /// <summary>
+        /// Configure the preprocess state, and all its features.
+        /// If you only want to enable some stuff then use <see cref="Enable"/> instead.
+        /// This function is if you want to customize more advanced settings.
+        /// The default values are set to the default of speexdps, so just leave the setting alone if you dont intend to change it.
+        /// </summary>
+        /// <param name="preprocessState">The state to apply all the settings to.</param>
+        /// <param name="denoise">Set preprocessor denoiser state</param>
+        /// <param name="agc">Set preprocessor Automatic Gain Control state</param>
+        /// <param name="vad">Set preprocessor Voice Activity Detection state</param>
+        /// <param name="agcLevel">Set preprocessor Automatic Gain Control level (float)</param>
+        /// <param name="deReverb">Set preprocessor dereverb state</param>
+        /// <param name="deReverbLevel">Set preprocessor dereverb level</param>
+        /// <param name="deReverbDecay">Set preprocessor dereverb decay</param>
+        /// <param name="vadProbStart">Set probability required for the VAD to go from silence to voice</param>
+        /// <param name="vadProbContinue">Set probability required for the VAD to stay in the voice state (integer percent)</param>
+        /// <param name="noiseSuppress">Set maximum attenuation of the noise in dB (negative number)</param>
+        /// <param name="echoSuppress">Set maximum attenuation of the residual echo in dB (negative number)</param>
+        /// <param name="echoSuppressActive">Set maximum attenuation of the residual echo in dB when near end is active (negative number)</param>
+        /// <param name="agcIncrement">Set maximal gain increase in dB/second</param>
+        /// <param name="agcDecrement">Set maximal gain decrease in dB/second</param>
+        /// <param name="agcMaxGain">Set maximal gain in dB (int32)</param>
+        /// <param name="agcTarget">Set preprocessor Automatic Gain Control level. (same as agc level??)</param>
+        /// <returns>Whether all the settings where applied correctly.</returns>
+        public static bool Configure
+        (
+            IntPtr preprocessState,
+            bool denoise = false,
+            bool agc = false,
+            bool vad = false,
+            float agcLevel = 0,
+            bool deReverb = false,
+            int deReverbLevel = 0,
+            int deReverbDecay = 0,
+            int vadProbStart = 35,
+            int vadProbContinue = 20,
+            int noiseSuppress = -15,
+            int echoSuppress = -40,
+            int echoSuppressActive = -15,
+            int agcIncrement = 12,
+            int agcDecrement = -40,
+            int agcMaxGain = 30,
+            int agcTarget = 8000
+        )
+        {
+            var returnValue = true;
+            var result = 0;
+            var intInstruction = 0;
+
+            intInstruction = denoise ? 1 : 0;
+            result = SpeexDSPNative.speex_preprocess_ctl(preprocessState, 0, new IntPtr(&intInstruction));
+            if (result != 0) returnValue = false;
+            
+            intInstruction = agc ? 1 : 0;
+            result = SpeexDSPNative.speex_preprocess_ctl(preprocessState, 2, new IntPtr(&intInstruction));
+            if (result != 0) returnValue = false;
+            
+            intInstruction = vad ? 1 : 0;
+            result = SpeexDSPNative.speex_preprocess_ctl(preprocessState, 4, new IntPtr(&intInstruction));
+            if (result != 0) returnValue = false;
+            
+            result = SpeexDSPNative.speex_preprocess_ctl(preprocessState, 6, new IntPtr(&agcLevel));
+            if (result != 0) returnValue = false;
+            
+            intInstruction = deReverb ? 1 : 0;
+            result = SpeexDSPNative.speex_preprocess_ctl(preprocessState, 8, new IntPtr(&intInstruction));
+            if (result != 0) returnValue = false;
+            
+            result = SpeexDSPNative.speex_preprocess_ctl(preprocessState, 10, new IntPtr(&deReverbLevel));
+            if (result != 0) returnValue = false;
+            
+            result = SpeexDSPNative.speex_preprocess_ctl(preprocessState, 12, new IntPtr(&deReverbDecay));
+            if (result != 0) returnValue = false;
+            
+            result = SpeexDSPNative.speex_preprocess_ctl(preprocessState, 14, new IntPtr(&vadProbStart));
+            if (result != 0) returnValue = false;
+            
+            result = SpeexDSPNative.speex_preprocess_ctl(preprocessState, 16, new IntPtr(&vadProbContinue));
+            if (result != 0) returnValue = false;
+            
+            result = SpeexDSPNative.speex_preprocess_ctl(preprocessState, 18, new IntPtr(&noiseSuppress));
+            if (result != 0) returnValue = false;
+            
+            result = SpeexDSPNative.speex_preprocess_ctl(preprocessState, 20, new IntPtr(&echoSuppress));
+            if (result != 0) returnValue = false;
+            
+            result = SpeexDSPNative.speex_preprocess_ctl(preprocessState, 22, new IntPtr(&echoSuppressActive));
+            if (result != 0) returnValue = false;
+            
+            result = SpeexDSPNative.speex_preprocess_ctl(preprocessState, 26, new IntPtr(&agcIncrement));
+            if (result != 0) returnValue = false;
+            
+            result = SpeexDSPNative.speex_preprocess_ctl(preprocessState, 28, new IntPtr(&agcDecrement));
+            if (result != 0) returnValue = false;
+            
+            result = SpeexDSPNative.speex_preprocess_ctl(preprocessState, 30, new IntPtr(&agcMaxGain));
+            if (result != 0) returnValue = false;
+            
+            result = SpeexDSPNative.speex_preprocess_ctl(preprocessState, 46, new IntPtr(&agcTarget));
+            if (result != 0) returnValue = false;
+            
+            return returnValue;
+        }
+
+        /// <summary>
+        /// Get a string with all the settings of this preprocessor.
+        /// This can be printed out for debugging.
+        /// See the speexdsp documentation and headerfiles to learn what it all means.
+        /// </summary>
+        /// <param name="preprocessState">The state to get the configurations from.</param>
+        /// <returns>A string with all the configurations.</returns>
+        public static string PrintConfigurations(IntPtr preprocessState)
+        {
+            var str = "";
+            var floatVar = 0f;
+            var intVar = 0;
+            SpeexDSPNative.speex_preprocess_ctl(preprocessState, 1, new IntPtr(&intVar));
+            str += "denoise: " + intVar + "\n";
+            SpeexDSPNative.speex_preprocess_ctl(preprocessState, 3, new IntPtr(&intVar));
+            str += "agc: " + intVar + "\n";
+            SpeexDSPNative.speex_preprocess_ctl(preprocessState, 5, new IntPtr(&intVar));
+            str += "vad: " + intVar + "\n";
+            SpeexDSPNative.speex_preprocess_ctl(preprocessState, 7, new IntPtr(&floatVar));
+            str += "agc level: " + intVar + "\n";
+            SpeexDSPNative.speex_preprocess_ctl(preprocessState, 9, new IntPtr(&intVar));
+            str += "dereverb: " + intVar + "\n";
+            SpeexDSPNative.speex_preprocess_ctl(preprocessState, 11, new IntPtr(&intVar));
+            str += "dereverb level: " + intVar + "\n";
+            SpeexDSPNative.speex_preprocess_ctl(preprocessState, 13, new IntPtr(&intVar));
+            str += "dereverb decay: " + intVar + "\n";
+            SpeexDSPNative.speex_preprocess_ctl(preprocessState, 15, new IntPtr(&intVar));
+            str += "vad prob start: " + intVar + "\n";
+            SpeexDSPNative.speex_preprocess_ctl(preprocessState, 17, new IntPtr(&intVar));
+            str += "vad prob continue: " + intVar + "\n";
+            SpeexDSPNative.speex_preprocess_ctl(preprocessState, 19, new IntPtr(&intVar));
+            str += "noise suppress: " + intVar + "\n";
+            SpeexDSPNative.speex_preprocess_ctl(preprocessState, 21, new IntPtr(&intVar));
+            str += "echo suppress: " + intVar + "\n";
+            SpeexDSPNative.speex_preprocess_ctl(preprocessState, 23, new IntPtr(&intVar));
+            str += "echo suppress active: " + intVar + "\n";
+            SpeexDSPNative.speex_preprocess_ctl(preprocessState, 27, new IntPtr(&intVar));
+            str += "agc increment: " + intVar + "\n";
+            SpeexDSPNative.speex_preprocess_ctl(preprocessState, 29, new IntPtr(&intVar));
+            str += "agc decrement: " + intVar + "\n";
+            SpeexDSPNative.speex_preprocess_ctl(preprocessState, 31, new IntPtr(&intVar));
+            str += "agc max gain: " + intVar + "\n";
+            SpeexDSPNative.speex_preprocess_ctl(preprocessState, 47, new IntPtr(&intVar));
+            str += "agc target: " + intVar + "\n";
+            return str;
         }
     }
 

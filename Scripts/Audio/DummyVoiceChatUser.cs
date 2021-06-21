@@ -45,7 +45,7 @@ namespace VoiceChat
             if (doCompression) _audioCodec = new OpusAudioCodec(_audioFormat, bitrate, complexity);
             else _audioCodec = new DummyAudioCodec(_audioFormat);
             
-            _audioProcessor = new SpeexDspAudioProcessor(_audioFormat, denoise, automaticGainControl, voiceActivityDetector, false);
+            _audioProcessor = new SpeexDspAudioProcessor(_audioFormat, denoise, automaticGainControl, voiceActivityDetector, false , false);
             
             _networkModule = new KafkaVoiceChatNetworkModule(id, serverUri, serverTopic, _audioCodec);
 

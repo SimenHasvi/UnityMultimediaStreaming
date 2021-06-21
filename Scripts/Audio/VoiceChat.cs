@@ -20,6 +20,7 @@ namespace VoiceChat
         public bool automaticGainControl = true;
         public bool voiceActivityDetector = true;
         public bool acousticEchoCancellation = true;
+        public bool deReverb = true;
         public int aecFilterLengthMs = 100;
 
         public bool doCompression = true;
@@ -49,7 +50,7 @@ namespace VoiceChat
             if (doCompression) _audioCodec = new OpusAudioCodec(_audioFormat, bitrate, complexity);
             else _audioCodec = new DummyAudioCodec(_audioFormat);
             
-            _audioProcessor = new SpeexDspAudioProcessor(_audioFormat, denoise, automaticGainControl, voiceActivityDetector, acousticEchoCancellation, aecFilterLengthMs);
+            _audioProcessor = new SpeexDspAudioProcessor(_audioFormat, denoise, automaticGainControl, voiceActivityDetector, acousticEchoCancellation, deReverb, aecFilterLengthMs);
 
             if (localNetwork) _networkModule = new LocalVoiceChatNetworkModule(_audioCodec);
             else _networkModule = new KafkaVoiceChatNetworkModule(id, serverUri, serverTopic, _audioCodec);
@@ -79,9 +80,13 @@ namespace VoiceChat
                 _mic.GetData(frame, _lastPos);
                 _lastPos += frame.Length;
                 var shortFrame = VoiceChatUtils.FloatToShort(frame);
-                if (acousticEchoCancellation) _audioProcessor.ProcessFrame(shortFrame, _audioPlayback.GetLastPlayedFrame());
-                else _audioProcessor.ProcessFrame(shortFrame);
-                _networkModule.SendFrame(shortFrame);
+                var vadResult = acousticEchoCancellation ? _audioProcessor.ProcessFrame(shortFrame, _audioPlayback.GetLastPlayedFrame()) : _audioProcessor.ProcessFrame(shortFrame);
+                //TODO: once VAD work properly it will always give true when turned off, so we dont need the following condition
+                if (voiceActivityDetector)
+                {
+                    if (vadResult) _networkModule.SendFrame(shortFrame);
+                }
+                else _networkModule.SendFrame(shortFrame);
             }
         }
 

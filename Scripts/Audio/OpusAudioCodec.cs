@@ -29,9 +29,10 @@ namespace VoiceChat
             _encoders.Add(id, new OpusEncoder(AudioFormat.SamplingRate, AudioFormat.Channels, OpusApplication.OPUS_APPLICATION_VOIP)
             {
                 Bitrate = Bitrate,
-                //UseVBR = true,
-                //SignalType = OpusSignal.OPUS_SIGNAL_VOICE,
-                //ForceMode = OpusMode.MODE_SILK_ONLY,
+                SignalType = OpusSignal.OPUS_SIGNAL_VOICE,
+                ForceMode = OpusMode.MODE_SILK_ONLY,
+                UseVBR = true,
+                //UseDTX = true,
                 Complexity = Complexity
             });
         }
