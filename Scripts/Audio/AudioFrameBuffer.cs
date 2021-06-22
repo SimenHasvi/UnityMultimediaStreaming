@@ -1,6 +1,9 @@
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using UnityEngine;
+using UnityVoiceChat.Scripts.Audio;
 
 namespace VoiceChat
 {
@@ -125,6 +128,22 @@ namespace VoiceChat
                 }
             }
             return combinedFrame;
+        }
+
+        /// <summary>
+        /// Saves the entire buffer in wav files for each user.
+        /// The only use for this is debugging.
+        /// Especially useful for aec debugging where you can save and listen to the input and echo audio.
+        /// </summary>
+        /// <param name="folder">The folder to save the audio files to.</param>
+        public void SaveBuffers(string folder)
+        {
+            foreach (var buffer in _frameBuffers)
+            {
+                var samples = new List<short>();
+                while (buffer.Value.Count > 0) samples.AddRange(buffer.Value.Dequeue());
+                SaveWav.Save(Path.Combine(folder, "" + buffer.Key), _audioFormat, VoiceChatUtils.ShortToFloat(samples.ToArray()));
+            }
         }
     }
 }

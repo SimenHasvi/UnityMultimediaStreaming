@@ -362,6 +362,7 @@ GameObject:
   - component: {fileID: 1834242300}
   - component: {fileID: 1834242298}
   - component: {fileID: 1834242301}
+  - component: {fileID: 1834242302}
   m_Layer: 0
   m_Name: VoiceChat
   m_TagString: Untagged
@@ -376,7 +377,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1834242297}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: fb5e212b35b1a3733afca06767a1a299, type: 3}
   m_Name: 
@@ -533,6 +534,18 @@ MonoBehaviour:
   doCompression: 1
   bitrate: 14000
   complexity: 10
+--- !u!114 &1834242302
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1834242297}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 028e856eab5147618e0f3edd9bea8098, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &2021057158
 GameObject:
   m_ObjectHideFlags: 0

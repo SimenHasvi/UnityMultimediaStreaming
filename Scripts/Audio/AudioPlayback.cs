@@ -1,9 +1,11 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.PlayerLoop;
 using UnityEngine.UIElements;
+using UnityVoiceChat.Scripts.Audio;
 
 namespace VoiceChat
 {
@@ -14,6 +16,7 @@ namespace VoiceChat
     public class AudioPlayback : MonoBehaviour
     {
         private int _endOfData = 0;
+        private int _prevLastPlayedPos = 0;
         private AudioSource _audioSource;
         private AudioFormat _audioFormat;
         private AudioFrameBuffer _audioFrameBuffer;
@@ -32,7 +35,7 @@ namespace VoiceChat
             _audioSource.clip = AudioClip.Create("voice_chat_clip", _audioFormat.SamplesPerFrame * 20, 1, _audioFormat.SamplingRate, false);
             _audioSource.loop = true;
             _audioSource.Play();
-            StartCoroutine(PlayFramesFromBuffer());
+            if (audioFrameBuffer != null) StartCoroutine(PlayFramesFromBuffer());
         }
         
         /// <summary>
@@ -97,6 +100,17 @@ namespace VoiceChat
             var prevFrame = new float[_audioFormat.SamplesPerFrame];
             _audioSource.clip.GetData(prevFrame, playbackPos);
             return VoiceChatUtils.FloatToShort(prevFrame);
+        }
+
+        /// <summary>
+        /// Save all the audio in the current audio clip
+        /// This is only for debugging
+        /// </summary>
+        public void SaveAudio(string filename)
+        {
+            var samples = new float[_audioSource.clip.samples];
+            _audioSource.clip.GetData(samples, 0);
+            SaveWav.Save(filename, _audioFormat, samples);
         }
     }
 }
