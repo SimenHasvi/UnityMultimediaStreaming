@@ -60,7 +60,7 @@ namespace VoiceChat
         {
             //if (_stopwatch.ElapsedMilliseconds >= AudioFormat.MillisecondsPerFrame * 2) AudioCodec.ResetEncoder(Id);
             //_stopwatch.Restart();
-            var len = AudioCodec.Encode(frame, _compressedFrame);
+            var len = AudioCodec.Encode(frame, _compressedFrame, Id);
             _packet = new byte[len + 1];
             _packet[0] = Convert.ToByte(Id);
             Array.Copy(_compressedFrame, 0, _packet, 1, len);
@@ -80,7 +80,7 @@ namespace VoiceChat
                 headerId = Convert.ToInt32(message.Value[0]);
                 _frame = new short[AudioFormat.SamplesPerFrame]; //each entry in the buffer needs to be a new reference, this should probably be changed at some point.
                 //if (AudioFrameBuffer.Count(headerId) <= 0) AudioCodec.ResetDecoder(headerId); //we assume a break in transmission so we reset the codec
-                AudioCodec.Decode(message.Value.Skip(1).ToArray(), _frame);
+                AudioCodec.Decode(message.Value.Skip(1).ToArray(), _frame, headerId);
                 AudioFrameBuffer.AddFrameToBuffer(_frame, headerId);
             }
         }

@@ -528,11 +528,12 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1834242297}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4fb36ae0af734049a5156b7443707b40, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  playSilence: 1
   clipToPlay: {fileID: 8300000, guid: 8f6c095f6a01ba17d805dd5fc0058ca2, type: 3}
   id: 2
   serverUri: kafka://virtualclassroom-server.cs.hku.hk:9092
@@ -540,9 +541,6 @@ MonoBehaviour:
   sampleRate: 16000
   millisecondsPerFrame: 20
   millisecondsInBuffer: 500
-  denoise: 0
-  automaticGainControl: 0
-  voiceActivityDetector: 0
   doCompression: 1
   bitrate: 14000
   complexity: 10

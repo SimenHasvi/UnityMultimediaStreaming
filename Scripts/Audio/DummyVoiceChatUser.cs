@@ -11,6 +11,7 @@ namespace VoiceChat
     /// </summary>
     public class DummyVoiceChatUser : MonoBehaviour
     {
+        public bool playSilence = false;
         public AudioClip clipToPlay;
         
         public int id = 0;
@@ -20,10 +21,7 @@ namespace VoiceChat
         public int sampleRate = 16000;
         public int millisecondsPerFrame = 20;
         public int millisecondsInBuffer = 500;
-        public bool denoise = true;
-        public bool automaticGainControl = true;
-        public bool voiceActivityDetector = true;
-
+        
         public bool doCompression = true;
         public int bitrate = 14000;
         public int complexity = 10;
@@ -32,7 +30,6 @@ namespace VoiceChat
 
         private AudioFrameBuffer _audioFrameBuffer;
         private AudioFormat _audioFormat;
-        private AudioProcessor _audioProcessor;
         private AudioCodec _audioCodec;
         private VoiceChatNetworkModule _networkModule;
         
@@ -44,9 +41,7 @@ namespace VoiceChat
             
             if (doCompression) _audioCodec = new OpusAudioCodec(_audioFormat, bitrate, complexity);
             else _audioCodec = new DummyAudioCodec(_audioFormat);
-            
-            _audioProcessor = new SpeexDspAudioProcessor(_audioFormat, false);
-            
+
             _networkModule = new KafkaVoiceChatNetworkModule(id, serverUri, serverTopic, _audioFormat, _audioCodec);
 
             StartCoroutine(SampleAudio());
@@ -55,6 +50,7 @@ namespace VoiceChat
         private IEnumerator SampleAudio()
         {
             Debug.Assert(clipToPlay.frequency == _audioFormat.SamplingRate);
+            var shortFrame = new short[_audioFormat.SamplesPerFrame];
             Stopwatch sw = new Stopwatch();
             sw.Start();
             while (true)
@@ -64,9 +60,9 @@ namespace VoiceChat
                 clipToPlay.GetData(frame, _lastPos);
                 _lastPos += frame.Length;
                 if (_lastPos >= clipToPlay.samples) _lastPos -= clipToPlay.samples;
-                var shortFrame = VoiceChatUtils.FloatToShort(frame);
-                //_audioProcessor.ProcessFrame(shortFrame);
-                _networkModule.SendFrame(shortFrame);
+                VoiceChatUtils.FloatToShort(shortFrame, frame);
+                if (playSilence) _networkModule.SendFrame(new short[_audioFormat.SamplesPerFrame]);
+                else _networkModule.SendFrame(shortFrame);
                 yield return new WaitForSecondsRealtime(0.0134f);
             }
         }
