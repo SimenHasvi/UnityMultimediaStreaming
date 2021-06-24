@@ -7,11 +7,10 @@ namespace VoiceChat
     /// </summary>
     public class LocalVoiceChatNetworkModule : VoiceChatNetworkModule
     {
-        public LocalVoiceChatNetworkModule(AudioCodec audioCodec, int id = 0, string serverUri = "") : base(id, serverUri, audioCodec){}
+        public LocalVoiceChatNetworkModule(AudioFormat audioFormat, AudioCodec audioCodec, int id = 0, string serverUri = "") : base(id, serverUri, audioFormat, audioCodec){}
 
-        public override void StartListenForFrames(AudioFormat audioFormat, AudioFrameBuffer audioFrameBuffer)
+        public override void StartListenForFrames(AudioFrameBuffer audioFrameBuffer)
         {
-            AudioFormat = audioFormat;
             AudioFrameBuffer = audioFrameBuffer;
         }
 

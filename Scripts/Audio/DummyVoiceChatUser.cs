@@ -47,7 +47,7 @@ namespace VoiceChat
             
             _audioProcessor = new SpeexDspAudioProcessor(_audioFormat, false);
             
-            _networkModule = new KafkaVoiceChatNetworkModule(id, serverUri, serverTopic, _audioCodec);
+            _networkModule = new KafkaVoiceChatNetworkModule(id, serverUri, serverTopic, _audioFormat, _audioCodec);
 
             StartCoroutine(SampleAudio());
         }

@@ -35,11 +35,13 @@ namespace VoiceChat
         /// </summary>
         /// <param name="id">Your unique id so people can tell who the frames come from.</param>
         /// <param name="serverUri">The server URI.</param>
+        /// <param name="audioFormat">The audio format for this voice chat instance.</param>
         /// <param name="audioCodec">The audio codec for compression.</param>
-        protected VoiceChatNetworkModule(int id, string serverUri, AudioCodec audioCodec)
+        protected VoiceChatNetworkModule(int id, string serverUri, AudioFormat audioFormat, AudioCodec audioCodec)
         {
             Id = id;
             ServerUri = serverUri;
+            AudioFormat = audioFormat;
             AudioCodec = audioCodec;
             VoiceChatUtils.Log(VoiceChatUtils.LogType.VerboseInfo, "Created " + this);
         }
@@ -48,9 +50,8 @@ namespace VoiceChat
         /// Start listening for frames. The result is written in the given buffer.
         /// This should create a new thread to run on. 
         /// </summary>
-        /// <param name="audioFormat">The format of the incoming audio frames.</param>
         /// <param name="audioFrameBuffer">The buffer where we write the incoming frames.</param>
-        public abstract void StartListenForFrames(AudioFormat audioFormat, AudioFrameBuffer audioFrameBuffer);
+        public abstract void StartListenForFrames(AudioFrameBuffer audioFrameBuffer);
         
         /// <summary>
         /// Stop the thread listening for new frames.

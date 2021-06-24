@@ -64,8 +64,8 @@ namespace VoiceChat
                 agcMaxGain,
                 agcTarget
             );
-            _networkModule = new LocalVoiceChatNetworkModule(_audioCodec);
-            _networkModule.StartListenForFrames(_audioFormat, _frameBuffer);
+            _networkModule = new LocalVoiceChatNetworkModule(_audioFormat, _audioCodec);
+            _networkModule.StartListenForFrames(_frameBuffer);
             gameObject.AddComponent<AudioPlayback>();
             _audioPlayback = GetComponent<AudioPlayback>();
             _audioPlayback.Play(_audioFormat, _frameBuffer, _audioProcessor);

@@ -6,6 +6,7 @@ using KafkaNet;
 using KafkaNet.Model;
 using KafkaNet.Protocol;
 using UnityEngine;
+using Debug = UnityEngine.Debug;
 
 namespace VoiceChat
 {
@@ -25,7 +26,7 @@ namespace VoiceChat
         private byte[] _compressedFrame;
         private byte[] _packet;
         
-        public KafkaVoiceChatNetworkModule(int id, string serverUri, string serverTopic, AudioCodec audioCodec) : base(id, serverUri, audioCodec)
+        public KafkaVoiceChatNetworkModule(int id, string serverUri, string serverTopic, AudioFormat audioFormat, AudioCodec audioCodec) : base(id, serverUri, audioFormat, audioCodec)
         {
             _serverTopic = serverTopic;
             _frame = new short[AudioFormat.SamplesPerFrame];
@@ -41,9 +42,8 @@ namespace VoiceChat
             _producer = new Producer(new BrokerRouter(new KafkaOptions(new Uri(ServerUri))));
         }
 
-        public override void StartListenForFrames(AudioFormat audioFormat, AudioFrameBuffer audioFrameBuffer)
+        public override void StartListenForFrames(AudioFrameBuffer audioFrameBuffer)
         {
-            AudioFormat = audioFormat;
             AudioFrameBuffer = audioFrameBuffer;
             _consumeThread.Start();
         }

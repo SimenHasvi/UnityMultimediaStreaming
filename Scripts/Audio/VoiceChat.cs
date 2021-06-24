@@ -88,9 +88,9 @@ namespace VoiceChat
                 agcTarget
             );
 
-            if (localNetwork) _networkModule = new LocalVoiceChatNetworkModule(_audioCodec);
-            else _networkModule = new KafkaVoiceChatNetworkModule(id, serverUri, serverTopic, _audioCodec);
-            _networkModule.StartListenForFrames(_audioFormat, _audioFrameBuffer);
+            if (localNetwork) _networkModule = new LocalVoiceChatNetworkModule(_audioFormat, _audioCodec);
+            else _networkModule = new KafkaVoiceChatNetworkModule(id, serverUri, serverTopic, _audioFormat, _audioCodec);
+            _networkModule.StartListenForFrames(_audioFrameBuffer);
             
             gameObject.AddComponent<AudioPlayback>();
             _audioPlayback = GetComponent<AudioPlayback>();
