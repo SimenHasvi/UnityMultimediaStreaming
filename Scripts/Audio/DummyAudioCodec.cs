@@ -13,9 +13,32 @@ namespace VoiceChat
             return VoiceChatUtils.ToByteStream(frame);
         }
 
+        public override int Encode(short[] frame, byte[] compressedFrame, int id = 0)
+        {
+            VoiceChatUtils.ToByteStream(compressedFrame, frame);
+            return compressedFrame.Length;
+        }
+
         public override short[] Decode(byte[] compressedFrame, int id = 0)
         {
             return VoiceChatUtils.FromByteStream(compressedFrame);
+        }
+
+        public override void Decode(byte[] compressedFrame, short[] frame, int id = 0)
+        {
+            VoiceChatUtils.FromByteStream(frame, compressedFrame);
+        }
+
+        public override void ResetEncoder(int id)
+        {
+        }
+
+        public override void ResetDecoder(int id)
+        {
+        }
+
+        public override void Reset()
+        {
         }
     }
 }

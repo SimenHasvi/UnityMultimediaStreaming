@@ -22,12 +22,10 @@ namespace VoiceChat
         /// Simple constructor.
         /// </summary>
         /// <param name="audioFormat">The format we process</param>
-        protected AudioProcessor(AudioFormat audioFormat, bool denoise, bool agc, bool vad, bool aec)
+        /// <param name="aec">Enable acoustic echo cancellation.</param>
+        protected AudioProcessor(AudioFormat audioFormat, bool aec)
         {
             AudioFormat = audioFormat;
-            Denoise = denoise;
-            Agc = agc;
-            Vad = vad;
             Aec = aec;
             VoiceChatUtils.Log(VoiceChatUtils.LogType.VerboseInfo, "Created " + this);
         }
@@ -38,8 +36,9 @@ namespace VoiceChat
         /// Call <see cref="RegisterPlayedFrame"/> just before you playback the frame (if needed).
         /// </summary>
         /// <param name="frame">The frame to process.</param>
+        /// <param name="outFrame">The frame where we write the results.</param>
         /// <returns>VAD result, is always true if no VAD.</returns>
-        public abstract bool ProcessFrame(short[] frame);
+        public abstract bool ProcessFrame(short[] frame, short[] outFrame);
 
         /// <summary>
         /// Process a frame with the configured settings.
@@ -51,8 +50,9 @@ namespace VoiceChat
         /// </summary>
         /// <param name="frame">The frame to process.</param>
         /// <param name="echoFrame">The audio that was played at the same time as the input frame was recorded.</param>
+        /// <param name="outFrame">The frame where we write the results.</param>
         /// <returns>VAD result, is always true if no VAD.</returns>
-        public abstract bool ProcessFrame(short[] frame, short[] echoFrame);
+        public abstract bool ProcessFrame(short[] frame, short[] echoFrame, short[] outFrame);
 
         /// <summary>
         /// Register a frame that you play.

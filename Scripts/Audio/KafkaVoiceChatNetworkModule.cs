@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using KafkaNet;
@@ -17,10 +18,19 @@ namespace VoiceChat
         private readonly Consumer _consumer;
         private readonly Producer _producer;
         private readonly Thread _consumeThread;
+        private readonly Stopwatch _stopwatch = new Stopwatch();
+        
+        //buffers
+        private short[] _frame;
+        private byte[] _compressedFrame;
+        private byte[] _packet;
         
         public KafkaVoiceChatNetworkModule(int id, string serverUri, string serverTopic, AudioCodec audioCodec) : base(id, serverUri, audioCodec)
         {
             _serverTopic = serverTopic;
+            _frame = new short[AudioFormat.SamplesPerFrame];
+            _compressedFrame = new byte[AudioFormat.SamplesPerFrame];
+            _packet = new byte[AudioFormat.SamplesPerFrame + 1];
             var options = new ConsumerOptions(serverTopic, new BrokerRouter(new KafkaOptions(new Uri(ServerUri))));
             options.MinimumBytes = 1;
             _consumer = new Consumer(options);
@@ -48,11 +58,13 @@ namespace VoiceChat
 
         public override void SendFrame(short[] frame)
         {
-            var compressedFrame = AudioCodec.Encode(frame);
-            var packet = new byte[compressedFrame.Length + 1];
-            packet[0] = Convert.ToByte(Id);
-            Array.Copy(compressedFrame, 0, packet, 1, compressedFrame.Length);
-            _producer.SendMessageAsync(_serverTopic, new[] {new Message(packet)});
+            //if (_stopwatch.ElapsedMilliseconds >= AudioFormat.MillisecondsPerFrame * 2) AudioCodec.ResetEncoder(Id);
+            //_stopwatch.Restart();
+            var len = AudioCodec.Encode(frame, _compressedFrame);
+            _packet = new byte[len + 1];
+            _packet[0] = Convert.ToByte(Id);
+            Array.Copy(_compressedFrame, 0, _packet, 1, len);
+            _producer.SendMessageAsync(_serverTopic, new[] {new Message(_packet)});
         }
 
         /// <summary>
@@ -62,10 +74,14 @@ namespace VoiceChat
         private void Consume()
         {
             VoiceChatUtils.Log(VoiceChatUtils.LogType.Info, "Starting kafka consumer on server: " + ServerUri + " topic: " + _serverTopic + " " + _consumer.GetOffsetPosition()[0]);
+            int headerId;
             foreach (var message in _consumer.Consume())
             {
-                var headerId = Convert.ToInt32(message.Value[0]);
-                AudioFrameBuffer.AddFrameToBuffer(AudioCodec.Decode(message.Value.Skip(1).ToArray(), headerId), headerId);
+                headerId = Convert.ToInt32(message.Value[0]);
+                _frame = new short[AudioFormat.SamplesPerFrame]; //each entry in the buffer needs to be a new reference, this should probably be changed at some point.
+                //if (AudioFrameBuffer.Count(headerId) <= 0) AudioCodec.ResetDecoder(headerId); //we assume a break in transmission so we reset the codec
+                AudioCodec.Decode(message.Value.Skip(1).ToArray(), _frame);
+                AudioFrameBuffer.AddFrameToBuffer(_frame, headerId);
             }
         }
     }

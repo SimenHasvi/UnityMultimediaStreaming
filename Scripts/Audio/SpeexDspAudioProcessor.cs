@@ -1,5 +1,6 @@
 using System;
 using System.Runtime.InteropServices;
+using UnityEngine.PlayerLoop;
 
 namespace VoiceChat
 {
@@ -10,44 +11,87 @@ namespace VoiceChat
         private readonly IntPtr _preprocessState;
         private readonly IntPtr _aecState;
         
-        public SpeexDspAudioProcessor(AudioFormat audioFormat, bool denoise, bool agc, bool vad, bool aec, bool deReverb, int aecFilterLengthMs = 100) : base(audioFormat, denoise, agc, vad, aec)
+        public SpeexDspAudioProcessor(AudioFormat audioFormat, bool aec, int aecFilterLengthMs = 100) : base(audioFormat, aec)
         {
             _preprocessState = SpeexDSPNative.speex_preprocess_state_init(AudioFormat.SamplesPerFrame, AudioFormat.SamplingRate);
-            PreprocessCtlRequest.Configure
-            (
-                _preprocessState, 
-                denoise: denoise, 
-                agc: agc, 
-                vad: vad, 
-                deReverb: deReverb, 
-                agcTarget: 150000
-            );
-            VoiceChatUtils.Log(VoiceChatUtils.LogType.Info, PreprocessCtlRequest.PrintConfigurations(_preprocessState));
-            if (_performAec = aec)
+            VoiceChatUtils.Log(VoiceChatUtils.LogType.Info, NativeCtlRequest.PrintPreprocessConfigurations(_preprocessState));
+            if (aec)
             {
-                // speexdsp recommends 100ms filter length for a small room, but make sure it is not too long
+                // speexdsp recommends 100-500ms filter length, and 10-20ms frame size
                 _aecState = SpeexDSPNative.speex_echo_state_init(AudioFormat.SamplesPerFrame, AudioFormat.SamplesInMs(aecFilterLengthMs));
-                PreprocessCtlRequest.SetAecState(_preprocessState, _aecState);
-                VoiceChatUtils.Log(VoiceChatUtils.LogType.VerboseInfo, "Enabled aec with frame size" + AudioFormat.SamplesPerFrame + " and filter length ms " + aecFilterLengthMs);
-                if (Math.Sqrt(AudioFormat.SamplesPerFrame) % 1 != 0) VoiceChatUtils.Log(VoiceChatUtils.LogType.Warning, "Optimal aec frame size should be a power of 2 in the order of 20ms.");
+                NativeCtlRequest.SetAecSamplingRate(_aecState, AudioFormat.SamplingRate);
+                NativeCtlRequest.SetAecState(_preprocessState, _aecState);
+                VoiceChatUtils.Log(VoiceChatUtils.LogType.VerboseInfo, "Enabled aec with configurations:\n" + NativeCtlRequest.PrintEchoConfiguration(_aecState));
+                _performAec = true;
             }
         }
-
-        public override bool ProcessFrame(short[] frame)
+        
+        /// <summary>
+        /// This method is specific to speexdsp so you might have to cast the audioprocessor to access it.
+        /// <see cref="NativeCtlRequest.Configure"/> for more details.
+        /// </summary>
+        public void Configure
+        (
+            bool denoise = false,
+            bool agc = false,
+            bool vad = false,
+            float agcLevel = 0,
+            bool deReverb = false,
+            float deReverbLevel = 0f,
+            float deReverbDecay = 0f,
+            int vadProbStart = 35,
+            int vadProbContinue = 20,
+            int noiseSuppress = -15,
+            int echoSuppress = -40,
+            int echoSuppressActive = -15,
+            int agcIncrement = 12,
+            int agcDecrement = -40,
+            int agcMaxGain = 30,
+            int agcTarget = 8000
+        )
         {
-            var vadResult = SpeexDSPNative.speex_preprocess_run(_preprocessState, frame);
-            if (_performAec) SpeexDSPNative.speex_echo_capture(_aecState, frame, frame);
-            return vadResult == 0;
+            NativeCtlRequest.Configure
+            (
+                _preprocessState,
+                denoise,
+                agc,
+                vad,
+                agcLevel,
+                deReverb,
+                deReverbLevel,
+                deReverbDecay,
+                vadProbStart,
+                vadProbContinue,
+                noiseSuppress,
+                echoSuppress,
+                echoSuppressActive,
+                agcIncrement,
+                agcDecrement,
+                agcMaxGain,
+                agcTarget
+            );
+            VoiceChatUtils.Log(VoiceChatUtils.LogType.Info, NativeCtlRequest.PrintPreprocessConfigurations(_preprocessState));
         }
 
-        // if you use this dont register the echo frame! We already have it here.
-        public override bool ProcessFrame(short[] frame, short[] echoFrame)
+        //TODO: maybe just read and write from the same buffers.
+        // aec will be performed using the registered frames, two frames delay is assumed with this method
+        public override bool ProcessFrame(short[] frame, short[] outFrame)
         {
-            var vadResult = SpeexDSPNative.speex_preprocess_run(_preprocessState, frame);
-            if (_performAec) SpeexDSPNative.speex_echo_cancellation(_aecState, frame, echoFrame, frame);
-            return vadResult == 0;
+            if (_performAec) SpeexDSPNative.speex_echo_capture(_aecState, frame, outFrame);
+            else Array.Copy(frame, outFrame, frame.Length);
+            var vadResult = SpeexDSPNative.speex_preprocess_run(_preprocessState, outFrame);
+            return vadResult == 1; //1 for speech, 0 for noise/silence
         }
 
+        // if you use this dont register the echo frame! We already have it here. No added delay with this method.
+        public override bool ProcessFrame(short[] frame, short[] echoFrame, short[] outFrame)
+        {
+            if (_performAec) SpeexDSPNative.speex_echo_cancellation(_aecState, frame, echoFrame, outFrame);
+            else Array.Copy(frame, outFrame, frame.Length);
+            var vadResult = SpeexDSPNative.speex_preprocess_run(_preprocessState, outFrame);
+            return vadResult == 1; //1 for speech, 0 for noise/silence
+        }
+        
         public override void RegisterPlayedFrame(short[] frame)
         {
             if (_performAec) SpeexDSPNative.speex_echo_playback(_aecState, frame);
@@ -58,7 +102,7 @@ namespace VoiceChat
     /// Contains helper functions to make requests to the preprocessor state.
     /// If you want to add more of these yourself, the request integers can be found in the source header files.
     /// </summary>
-    public static unsafe class PreprocessCtlRequest
+    public static unsafe class NativeCtlRequest
     {
         /// <summary>
         /// Make multiple request to the native preprocess state.
@@ -140,6 +184,18 @@ namespace VoiceChat
         }
 
         /// <summary>
+        /// Set the sampling rate for the aec state. Do this in the setup phase.
+        /// </summary>
+        /// <param name="aecState">The state to set it on.</param>
+        /// <param name="samplingRate">The sampling rate to set.</param>
+        /// <returns>Whether the requests where successful or not.</returns>
+        public static bool SetAecSamplingRate(IntPtr aecState, int samplingRate)
+        {
+            var result = SpeexDSPNative.speex_echo_ctl(aecState, 24, new IntPtr(&samplingRate));
+            return result == 0;
+        }
+
+        /// <summary>
         /// Configure the preprocess state, and all its features.
         /// If you only want to enable some stuff then use <see cref="Enable"/> instead.
         /// This function is if you want to customize more advanced settings.
@@ -171,8 +227,8 @@ namespace VoiceChat
             bool vad = false,
             float agcLevel = 0,
             bool deReverb = false,
-            int deReverbLevel = 0,
-            int deReverbDecay = 0,
+            float deReverbLevel = 0f,
+            float deReverbDecay = 0f,
             int vadProbStart = 35,
             int vadProbContinue = 20,
             int noiseSuppress = -15,
@@ -250,7 +306,7 @@ namespace VoiceChat
         /// </summary>
         /// <param name="preprocessState">The state to get the configurations from.</param>
         /// <returns>A string with all the configurations.</returns>
-        public static string PrintConfigurations(IntPtr preprocessState)
+        public static string PrintPreprocessConfigurations(IntPtr preprocessState)
         {
             var str = "";
             var floatVar = 0f;
@@ -265,10 +321,10 @@ namespace VoiceChat
             str += "agc level: " + intVar + "\n";
             SpeexDSPNative.speex_preprocess_ctl(preprocessState, 9, new IntPtr(&intVar));
             str += "dereverb: " + intVar + "\n";
-            SpeexDSPNative.speex_preprocess_ctl(preprocessState, 11, new IntPtr(&intVar));
-            str += "dereverb level: " + intVar + "\n";
-            SpeexDSPNative.speex_preprocess_ctl(preprocessState, 13, new IntPtr(&intVar));
-            str += "dereverb decay: " + intVar + "\n";
+            SpeexDSPNative.speex_preprocess_ctl(preprocessState, 11, new IntPtr(&floatVar));
+            str += "dereverb level: " + floatVar + "\n";
+            SpeexDSPNative.speex_preprocess_ctl(preprocessState, 13, new IntPtr(&floatVar));
+            str += "dereverb decay: " + floatVar + "\n";
             SpeexDSPNative.speex_preprocess_ctl(preprocessState, 15, new IntPtr(&intVar));
             str += "vad prob start: " + intVar + "\n";
             SpeexDSPNative.speex_preprocess_ctl(preprocessState, 17, new IntPtr(&intVar));
@@ -289,6 +345,22 @@ namespace VoiceChat
             str += "agc target: " + intVar + "\n";
             return str;
         }
+
+        /// <summary>
+        /// Gives a string with the configurations for the given aec state.
+        /// </summary>
+        /// <param name="aecState">The aec state</param>
+        /// <returns>String containing the configurations.</returns>
+        public static string PrintEchoConfiguration(IntPtr aecState)
+        {
+            var str = "";
+            var intVar = 0;
+            SpeexDSPNative.speex_echo_ctl(aecState, 3, new IntPtr(&intVar));
+            str += "frame size: " + intVar + "\n";
+            SpeexDSPNative.speex_echo_ctl(aecState, 25, new IntPtr(&intVar));
+            str += "sampling rate: " + intVar + "\n";
+            return str;
+        }
     }
 
     /// <summary>
@@ -303,19 +375,45 @@ namespace VoiceChat
         
         [DllImport("speexdsp")]
         public static extern int speex_preprocess_ctl(IntPtr preprocess_state, int request, IntPtr ptr);
+        
+        [DllImport("speexdsp")]
+        public static extern int speex_echo_ctl(IntPtr preprocess_state, int request, IntPtr ptr);
     
         [DllImport("speexdsp")]
         public static extern int speex_preprocess_run(IntPtr preprocess_state, short[] audio_frame);
         
+        /** Creates a new echo canceller state
+        * @param frame_size Number of samples to process at one time (should correspond to 10-20 ms)
+        * @param filter_length Number of samples of echo to cancel (should generally correspond to 100-500 ms)
+        * @return Newly-created echo canceller state
+        */
         [DllImport("speexdsp")]
         public static extern IntPtr speex_echo_state_init(int frame_size, int filter_length);
         
+        /** Performs echo cancellation a frame, based on the audio sent to the speaker (no delay is added
+        * to playback in this form)
+        *
+        * @param st Echo canceller state
+        * @param rec Signal from the microphone (near end + far end echo)
+        * @param play Signal played to the speaker (received from far end)
+        * @param out Returns near-end signal with echo removed
+        */
         [DllImport("speexdsp")]
         public static extern void speex_echo_cancellation(IntPtr echo_state, short[] input_frame, short[] echo_frame, short[] output_frame);
         
+        /** Let the echo canceller know that a frame was just queued to the soundcard
+        * @param st Echo canceller state
+        * @param play Signal played to the speaker (received from far end)
+        */
         [DllImport("speexdsp")]
         public static extern void speex_echo_playback(IntPtr echo_state, short[] echo_frame);
         
+        /** Perform echo cancellation using internal playback buffer, which is delayed by two frames
+        * to account for the delay introduced by most soundcards (but it could be off!)
+        * @param st Echo canceller state
+        * @param rec Signal from the microphone (near end + far end echo)
+        * @param out Returns near-end signal with echo removed
+        */
         [DllImport("speexdsp")]
         public static extern void speex_echo_capture(IntPtr echo_state, short[] input_frame, short[] output_frame);
     }

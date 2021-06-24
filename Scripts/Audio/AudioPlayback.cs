@@ -15,24 +15,28 @@ namespace VoiceChat
     [RequireComponent(typeof(AudioSource))]
     public class AudioPlayback : MonoBehaviour
     {
+        private int _delayFrames = 10;
         private int _endOfData = 0;
-        private int _prevLastPlayedPos = 0;
         private AudioSource _audioSource;
         private AudioFormat _audioFormat;
         private AudioFrameBuffer _audioFrameBuffer;
+        private AudioProcessor _audioProcessor;
         private List<int> _muted = new List<int>();
-
+        private float[] _frame;
+        
         /// <summary>
         /// Start playing the audio.
         /// </summary>
         /// <param name="audioFormat">The audio format to play</param>
         /// <param name="audioFrameBuffer">If this is provided it will automatically add frames from this buffer.</param>
-        public void Play(AudioFormat audioFormat, AudioFrameBuffer audioFrameBuffer = null)
+        public void Play(AudioFormat audioFormat, AudioFrameBuffer audioFrameBuffer = null, AudioProcessor audioProcessor = null)
         {
             _audioFormat = audioFormat;
+            _frame = new float[_audioFormat.SamplesPerFrame];
             _audioFrameBuffer = audioFrameBuffer;
+            _audioProcessor = audioProcessor;
             _audioSource = GetComponent<AudioSource>();
-            _audioSource.clip = AudioClip.Create("voice_chat_clip", _audioFormat.SamplesPerFrame * 20, 1, _audioFormat.SamplingRate, false);
+            _audioSource.clip = AudioClip.Create("voice_chat_clip", _audioFormat.SamplesPerFrame * 50, 1, _audioFormat.SamplingRate, false);
             _audioSource.loop = true;
             _audioSource.Play();
             if (audioFrameBuffer != null) StartCoroutine(PlayFramesFromBuffer());
@@ -66,14 +70,16 @@ namespace VoiceChat
             while (true)
             {
                 PlayFrame(_audioFrameBuffer.GetNextFrameFromBuffer(_muted.ToArray()));
-                while (VoiceChatUtils.CircularDistanceTo(_audioSource.timeSamples, _endOfData, _audioSource.clip.samples) > _audioFormat.SamplesPerFrame * 10) yield return null;
+                while (VoiceChatUtils.CircularDistanceTo(_audioSource.timeSamples, _endOfData, _audioSource.clip.samples) > _audioFormat.SamplesPerFrame * _delayFrames) yield return null;
             }
         }
 
         /// <inheritdoc cref="PlayFrame(float[])"/>
         public void PlayFrame(short[] frame)
         {
-            PlayFrame(VoiceChatUtils.ShortToFloat(frame));
+            _audioProcessor?.RegisterPlayedFrame(frame);
+            VoiceChatUtils.ShortToFloat(_frame, frame);
+            PlayFrame(_frame);
         }
         
         /// <summary>
@@ -81,7 +87,7 @@ namespace VoiceChat
         /// <remarks>Expect ~200ms delay before its actually played on the speakers.</remarks>
         /// </summary>
         /// <param name="frame">The frame to play.</param>
-        public void PlayFrame(float[] frame)
+        private void PlayFrame(float[] frame)
         {
             _audioSource.clip.SetData(frame, _endOfData);
             _endOfData += _audioFormat.SamplesPerFrame;
@@ -89,28 +95,18 @@ namespace VoiceChat
         }
 
         /// <summary>
+        /// TODO: this method leaves a lot of overlap between frames, and sometimes gaps between them as well.
         /// Get the last played samples. This should match closely to what is played by the soundcard.
         /// Ideal for the use in echo cancellation.
         /// </summary>
         /// <returns> The last played samples, the length is that of a frame.</returns>
         public short[] GetLastPlayedFrame()
         {
-            var playbackPos = _audioSource.timeSamples - _audioFormat.SamplesPerFrame * 2;
+            var playbackPos = _audioSource.timeSamples - _audioFormat.SamplesPerFrame * 5;
             if (playbackPos < 0) playbackPos = _audioSource.clip.samples + playbackPos;
             var prevFrame = new float[_audioFormat.SamplesPerFrame];
             _audioSource.clip.GetData(prevFrame, playbackPos);
             return VoiceChatUtils.FloatToShort(prevFrame);
-        }
-
-        /// <summary>
-        /// Save all the audio in the current audio clip
-        /// This is only for debugging
-        /// </summary>
-        public void SaveAudio(string filename)
-        {
-            var samples = new float[_audioSource.clip.samples];
-            _audioSource.clip.GetData(samples, 0);
-            SaveWav.Save(filename, _audioFormat, samples);
         }
     }
 }

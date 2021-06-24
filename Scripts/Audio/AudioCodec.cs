@@ -44,12 +44,46 @@ namespace VoiceChat
         public abstract byte[] Encode(short[] frame, int id = 0);
 
         /// <summary>
+        /// Encode a single audio frame.
+        /// </summary>
+        /// <param name="frame">The frame to encode.</param>
+        /// <param name="compressedFrame">The buffer containing the compressed frame on completion.</param>
+        /// <param name="id">The id of the users which the frame came from, used for stateful encoders.</param>
+        /// <returns>Length of the compressed data.</returns>
+        public abstract int Encode(short[] frame, byte[] compressedFrame, int id = 0);
+
+        /// <summary>
         /// Decode a given encoded frame.
         /// </summary>
         /// <param name="compressedFrame"></param>
         /// <param name="id">The id of the users which the frame came from, used for stateful encoders.</param>
         /// <returns>The decoded frame.</returns>
         public abstract short[] Decode(byte[] compressedFrame, int id = 0);
+
+        /// <summary>
+        /// Decode a given encoded frame.
+        /// </summary>
+        /// <param name="compressedFrame">The frame to decode</param>
+        /// <param name="frame">Contains the decoded frame on completion.</param>
+        /// <param name="id">The id of the users which the frame came from, used for stateful encoders.</param>
+        public abstract void Decode(byte[] compressedFrame, short[] frame, int id = 0);
+
+        /// <summary>
+        /// Reset the state of the encoder.
+        /// </summary>
+        /// <param name="id">The specific encoder to reset.</param>
+        public abstract void ResetEncoder(int id);
+
+        /// <summary>
+        /// Reset the state of the decoder.
+        /// </summary>
+        /// <param name="id">The specific decoder to reset.</param>
+        public abstract void ResetDecoder(int id);
+        
+        /// <summary>
+        /// Reset the state of the all the codecs.
+        /// </summary>
+        public abstract void Reset();
 
         public override string ToString()
         {

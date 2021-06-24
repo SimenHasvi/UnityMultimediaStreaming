@@ -1,3 +1,6 @@
+using UnityEditor;
+using UnityEngine.UIElements;
+
 namespace VoiceChat
 {
     /// <summary>
@@ -29,20 +32,31 @@ namespace VoiceChat
         /// The number or channels. This should pretty much always be 1 in the context of voice chat.
         /// </summary>
         public int Channels { get; }
-        
+
         /// <summary>
         /// Constructor for the AudioFormat object.
         /// </summary>
         /// <param name="samplingRate">Samples per second.</param>
-        /// <param name="millisecondsPerFrame">Milliseconds per frame.</param>
-        public AudioFormat(int samplingRate, int millisecondsPerFrame, int channels = 1) : this()
+        /// <param name="frameSize">Milliseconds per frame. (You can also use samples per frame with <see cref="frameSizeInMs"/>)</param>
+        /// <param name="channels">Channels, in general you should just leave this one alone.</param>
+        /// <param name="frameSizeInMs">This allows you to specify if the framesize is given in ms or samples, you are generally gonna want to leave this alone.</param>
+        public AudioFormat(int samplingRate = 16000, int frameSize = 20, int channels = 1, bool frameSizeInMs = true) : this()
         {
-            
+            //TODO: maybe its best to use float numbers here?
             SamplingRate = samplingRate;
-            MillisecondsPerFrame = millisecondsPerFrame;
-            FramesPerSecond = 1000 / MillisecondsPerFrame;
-            SamplesPerFrame = samplingRate / FramesPerSecond;
             Channels = channels;
+            if (frameSizeInMs)
+            {
+                MillisecondsPerFrame = frameSize;
+                FramesPerSecond = 1000 / MillisecondsPerFrame;
+                SamplesPerFrame = samplingRate / FramesPerSecond;
+            }
+            else
+            {
+                SamplesPerFrame = frameSize;
+                MillisecondsPerFrame = 1000 / (SamplingRate / SamplesPerFrame);
+                FramesPerSecond = 1000 / MillisecondsPerFrame;
+            }
         }
 
         /// <summary>
@@ -52,7 +66,7 @@ namespace VoiceChat
         /// <returns>The number of samples in the time span.</returns>
         public int SamplesInMs(int ms)
         {
-            return SamplingRate / (1000 / ms);
+            return (int)(SamplingRate / (1000f / ms));
         }
 
         public override string ToString()

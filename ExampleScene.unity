@@ -377,7 +377,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1834242297}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: fb5e212b35b1a3733afca06767a1a299, type: 3}
   m_Name: 
@@ -390,12 +390,24 @@ MonoBehaviour:
   sampleRate: 16000
   millisecondsPerFrame: 20
   millisecondsInBuffer: 500
-  denoise: 1
+  deNoise: 1
   automaticGainControl: 1
   voiceActivityDetector: 0
   acousticEchoCancellation: 1
-  deReverb: 1
+  deReverb: 0
   aecFilterLengthMs: 200
+  agcLevel: 10000
+  deReverbLevel: 0.5
+  deReverbDecay: 0.5
+  vadProbStart: 95
+  vadProbContinue: 95
+  noiseSuppress: -45
+  echoSuppress: -25
+  echoSuppressActive: -40
+  agcIncrement: 12
+  agcDecrement: -12
+  agcMaxGain: 30
+  agcTarget: 10000
   doCompression: 1
   bitrate: 14000
   complexity: 10
@@ -541,11 +553,29 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1834242297}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 028e856eab5147618e0f3edd9bea8098, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  aec: 0
+  aecFilterLengthMs: 200
+  deNoise: 1
+  agc: 1
+  vad: 0
+  agcLevel: 10000
+  deReverb: 0
+  deReverbLevel: 0.5
+  deReverbDecay: 0.5
+  vadProbStart: 95
+  vadProbContinue: 95
+  noiseSuppress: -45
+  echoSuppress: -25
+  echoSuppressActive: -40
+  agcIncrement: 12
+  agcDecrement: -12
+  agcMaxGain: 30
+  agcTarget: 10000
 --- !u!1 &2021057158
 GameObject:
   m_ObjectHideFlags: 0

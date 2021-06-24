@@ -45,7 +45,7 @@ namespace VoiceChat
             if (doCompression) _audioCodec = new OpusAudioCodec(_audioFormat, bitrate, complexity);
             else _audioCodec = new DummyAudioCodec(_audioFormat);
             
-            _audioProcessor = new SpeexDspAudioProcessor(_audioFormat, denoise, automaticGainControl, voiceActivityDetector, false , false);
+            _audioProcessor = new SpeexDspAudioProcessor(_audioFormat, false);
             
             _networkModule = new KafkaVoiceChatNetworkModule(id, serverUri, serverTopic, _audioCodec);
 
@@ -65,7 +65,7 @@ namespace VoiceChat
                 _lastPos += frame.Length;
                 if (_lastPos >= clipToPlay.samples) _lastPos -= clipToPlay.samples;
                 var shortFrame = VoiceChatUtils.FloatToShort(frame);
-                _audioProcessor.ProcessFrame(shortFrame);
+                //_audioProcessor.ProcessFrame(shortFrame);
                 _networkModule.SendFrame(shortFrame);
                 yield return new WaitForSecondsRealtime(0.0134f);
             }

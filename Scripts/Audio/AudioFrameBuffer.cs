@@ -136,14 +136,21 @@ namespace VoiceChat
         /// Especially useful for aec debugging where you can save and listen to the input and echo audio.
         /// </summary>
         /// <param name="folder">The folder to save the audio files to.</param>
-        public void SaveBuffers(string folder)
+        public void DumpBuffers(string folder)
         {
+            var samplesCombined = new List<short>();
             foreach (var buffer in _frameBuffers)
             {
                 var samples = new List<short>();
                 while (buffer.Value.Count > 0) samples.AddRange(buffer.Value.Dequeue());
-                SaveWav.Save(Path.Combine(folder, "" + buffer.Key), _audioFormat, VoiceChatUtils.ShortToFloat(samples.ToArray()));
+                SaveWav.Save(Path.Combine(folder, "buffer_" + buffer.Key), _audioFormat, VoiceChatUtils.ShortToFloat(samples.ToArray()));
+                for (var i = 0; i < samples.Count; i++)
+                {
+                    if (samplesCombined.Count <= i) samplesCombined.Add(samples[i]);
+                    else samplesCombined[i] += samples[i];
+                }
             }
+            SaveWav.Save(Path.Combine(folder, "buffer_combined"), _audioFormat, VoiceChatUtils.ShortToFloat(samplesCombined.ToArray()));
         }
     }
 }

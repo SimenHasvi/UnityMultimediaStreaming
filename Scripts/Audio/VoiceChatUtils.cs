@@ -67,6 +67,21 @@ namespace VoiceChat
         }
 
         /// <summary>
+        /// Convert a float array with range -1 to 1 to a short array.
+        /// Make sure the two array have the same length.
+        /// </summary>
+        /// <param name="outShorts">The array where we write the output</param>
+        /// <param name="floats">The float array (values between -1 and 1)</param>
+        /// <returns>The short array.</returns>
+        public static void FloatToShort(short[] outShorts, params float[] floats)
+        {
+            for (var i = 0; i < floats.Length; i++)
+            {
+                outShorts[i] = (short)(floats[i] * short.MaxValue);
+            }
+        }
+
+        /// <summary>
         /// Convert a short array to a float array (with range -1 to 1).
         /// </summary>
         /// <param name="shorts">The short array.</param>
@@ -82,6 +97,20 @@ namespace VoiceChat
         }
 
         /// <summary>
+        /// Convert a short array to a float array (with range -1 to 1).
+        /// Make sure the two arrays have the same length.
+        /// </summary>
+        /// <param name="outFloats">The array to write the results to.</param>
+        /// <param name="shorts">The short array.</param>
+        public static void ShortToFloat(float[] outFloats, params short[] shorts)
+        {
+            for (var i = 0; i < shorts.Length; i++)
+            {
+                outFloats[i] = shorts[i] / (float)short.MaxValue;
+            }
+        }
+
+        /// <summary>
         /// Copy the raw bytes of a short array to a byte array
         /// </summary>
         /// <param name="shorts">The short array.</param>
@@ -94,6 +123,16 @@ namespace VoiceChat
         }
 
         /// <summary>
+        /// Copy the raw bytes of a short array to a byte array
+        /// </summary>
+        /// <param name="outBytes">Bytes of the short array, should be length shorts.Length * sizeof(short)</param>
+        /// <param name="shorts">The short array.</param>
+        public static void ToByteStream(byte[] outBytes, params short[] shorts)
+        {
+            Buffer.BlockCopy(shorts, 0, outBytes, 0, outBytes.Length);
+        }
+
+        /// <summary>
         /// Copy the raw bytes of a byte array to a short array.
         /// </summary>
         /// <param name="bytes">The bytes.</param>
@@ -103,6 +142,16 @@ namespace VoiceChat
             var shorts = new short[bytes.Length / sizeof(short)];
             Buffer.BlockCopy(bytes, 0, shorts, 0, bytes.Length);
             return shorts;
+        }
+
+        /// <summary>
+        /// Copy the raw bytes of a byte array to a short array.
+        /// </summary>
+        /// <param name="outShorts">output buffer, should have length bytes.Length / sizeof(short)</param>
+        /// <param name="bytes">The bytes.</param>
+        public static void FromByteStream(short[] outShorts, params byte[] bytes)
+        {
+            Buffer.BlockCopy(bytes, 0, outShorts, 0, bytes.Length);
         }
         
         /// <summary>
