@@ -386,7 +386,7 @@ MonoBehaviour:
   id: 1
   serverUri: kafka://virtualclassroom-server.cs.hku.hk:9092
   serverTopic: vcr-room-audio-15
-  localNetwork: 0
+  localNetwork: 1
   sampleRate: 16000
   millisecondsPerFrame: 20
   millisecondsInBuffer: 500
@@ -528,7 +528,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1834242297}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4fb36ae0af734049a5156b7443707b40, type: 3}
   m_Name: 

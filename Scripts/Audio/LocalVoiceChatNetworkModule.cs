@@ -1,3 +1,6 @@
+using System;
+using UnityEditor.UIElements;
+
 namespace VoiceChat
 {
     
@@ -19,7 +22,12 @@ namespace VoiceChat
         public override void SendFrame(short[] frame)
         {
             //encode and decode before putting it in the buffer for debugging
-            AudioFrameBuffer.AddFrameToBuffer(AudioCodec.Decode(AudioCodec.Encode(frame)), Id);
+            var encodedFrame = new byte[AudioFormat.SamplesPerFrame];
+            var decodedFrame = new short[AudioFormat.SamplesPerFrame];
+            var len = AudioCodec.Encode(frame, encodedFrame);
+            Array.Resize(ref encodedFrame, len);
+            AudioCodec.Decode(encodedFrame, decodedFrame);
+            AudioFrameBuffer.AddFrameToBuffer(decodedFrame, Id);
         }
     }
 }
