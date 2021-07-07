@@ -15,8 +15,8 @@ namespace VoiceChat
         public AudioClip clipToPlay;
         
         public int id = 0;
-        public string serverUri;
-        public string serverTopic;
+        public string serverUrl;
+        public int roomNumber;
         
         public int sampleRate = 16000;
         public int millisecondsPerFrame = 20;
@@ -42,7 +42,7 @@ namespace VoiceChat
             if (doCompression) _audioCodec = new OpusAudioCodec(_audioFormat, bitrate, complexity);
             else _audioCodec = new DummyAudioCodec(_audioFormat);
 
-            _networkModule = new KafkaVoiceChatNetworkModule(id, serverUri, serverTopic, _audioFormat, _audioCodec);
+            _networkModule = new KafkaVoiceChatNetworkModule(id, serverUrl, roomNumber, _audioFormat, _audioCodec);
 
             StartCoroutine(SampleAudio());
         }

@@ -13,7 +13,7 @@ namespace VoiceChat
         /// <summary>
         /// The server URI
         /// </summary>
-        protected string ServerUri { get; }
+        protected string ServerUrl { get; }
         
         /// <summary>
         /// The audio format for both sent and received audio.
@@ -40,7 +40,7 @@ namespace VoiceChat
         protected VoiceChatNetworkModule(int id, string serverUri, AudioFormat audioFormat, AudioCodec audioCodec)
         {
             Id = id;
-            ServerUri = serverUri;
+            ServerUrl = serverUri;
             AudioFormat = audioFormat;
             AudioCodec = audioCodec;
             VoiceChatUtils.Log(VoiceChatUtils.LogType.VerboseInfo, "Created " + this);
@@ -58,16 +58,17 @@ namespace VoiceChat
         /// In Unity you are gonna want to call this in OnDestroy().
         /// </summary>
         public abstract void StopListenForFrames();
-        
+
         /// <summary>
         /// Send a frame to the network.
         /// </summary>
         /// <param name="frame">The frame to send.</param>
-        public abstract void SendFrame(short[] frame);
+        /// <param name="newCodecState">If the codec state should be reset, this will be done at the receiving end too.</param>
+        public abstract void SendFrame(short[] frame, bool newCodecState = false);
 
         public override string ToString()
         {
-            return base.ToString() + "[id:"+ Id + ", serverUri:" + ServerUri + ", codec:" + AudioCodec + "]";
+            return base.ToString() + "[id:"+ Id + ", serverUri:" + ServerUrl + ", codec:" + AudioCodec + "]";
         }
     }
 }

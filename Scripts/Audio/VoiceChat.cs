@@ -2,16 +2,22 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityVoiceChat.Scripts.Audio;
 
 namespace VoiceChat
 {
     public class VoiceChat : MonoBehaviour
     {
+        [Header("Target FPS for debugging.")] 
+        [Range(1, 100)]
+        public int targetFPS;
+
         [Header("Network")]
         public bool playSelf = false;
         public int id = 0;
-        public string serverUri;
-        public string serverTopic;
+        public string serverUrl;
+        public int roomNumber;
+        private string userToken = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX3VzZXJuYW1lIjoidGVhY2hlciIsInVzZXJfcGFzc3dvcmQiOiIkYXJnb24yaSR2PTE5JG09NjU1MzYsdD00LHA9MSRibFJJVjBrM05XTlZjVzF5ZFdWV1ZBJFNXbEs5NGlabW5WVm82ZkhkVlhWT2xXZjAyTE52aVltZ0dtQkNEM1E0OGcifQ.S6N4NaXkrUABjDHWw8Co2psHtc0ACg6PCPErx-RskJs";
         public bool localNetwork = true;
         
         [Header("Audio Format")]
@@ -44,6 +50,7 @@ namespace VoiceChat
         public int bitrate = 14000;
         public int complexity = 10;
 
+        private bool _resetEncoderState = false;
         private int _lastPos, _pos = 0;
         private AudioClip _mic;
 
@@ -53,10 +60,10 @@ namespace VoiceChat
         private AudioPlayback _audioPlayback;
         private AudioCodec _audioCodec;
         private VoiceChatNetworkModule _networkModule;
-
-
+        
         private void Start()
         {
+            Application.targetFrameRate = targetFPS;
             VoiceChatUtils.EnableUnityLogging(true);
             
             _audioFormat = new AudioFormat(sampleRate, millisecondsPerFrame);
@@ -89,9 +96,9 @@ namespace VoiceChat
             );
 
             if (localNetwork) _networkModule = new LocalVoiceChatNetworkModule(_audioFormat, _audioCodec);
-            else _networkModule = new KafkaVoiceChatNetworkModule(id, serverUri, serverTopic, _audioFormat, _audioCodec);
+            else _networkModule = new KafkaVoiceChatNetworkModule(id, serverUrl, roomNumber, _audioFormat, _audioCodec);
             _networkModule.StartListenForFrames(_audioFrameBuffer);
-            
+            //StartCoroutine(((KafkaVoiceChatNetworkModule)_networkModule).MuteUser(id, userToken));
             gameObject.AddComponent<AudioPlayback>();
             _audioPlayback = GetComponent<AudioPlayback>();
             _audioPlayback.Play(_audioFormat, _audioFrameBuffer, _audioProcessor);
@@ -105,7 +112,7 @@ namespace VoiceChat
         {
             var frame = new float[_audioFormat.SamplesPerFrame];
             var shortFrame = new short[_audioFormat.SamplesPerFrame];
-            var outFrame = new short[_audioFormat.SamplesPerFrame];
+            var recordedFrames = new RingBuffer(10, _audioFormat);
             while (true)
             {
                 while (_pos - _lastPos < frame.Length)
@@ -118,8 +125,20 @@ namespace VoiceChat
                 _mic.GetData(frame, _lastPos);
                 _lastPos += frame.Length;
                 VoiceChatUtils.FloatToShort(shortFrame, frame);
-                var vadResult = _audioProcessor.ProcessFrame(shortFrame, outFrame);
-                if (vadResult) _networkModule.SendFrame(outFrame);
+                var vadResult = _audioProcessor.ProcessFrame(shortFrame, recordedFrames.AddFrame());
+                if (vadResult)
+                {
+                    foreach (var recordedFrame in recordedFrames.DumpFramesReverse())
+                    {
+                        _networkModule.SendFrame(recordedFrame, _resetEncoderState);
+                        _resetEncoderState = false;
+                    }
+                }
+                else
+                {
+                    //since there is a gap in the sent audio signal we need to reset the encoder the next frame sent
+                    _resetEncoderState = true;
+                }
             }
         }
 

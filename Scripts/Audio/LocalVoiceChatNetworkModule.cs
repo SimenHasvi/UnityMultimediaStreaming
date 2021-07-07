@@ -1,5 +1,6 @@
 using System;
 using UnityEditor.UIElements;
+using UnityEngine;
 
 namespace VoiceChat
 {
@@ -19,14 +20,20 @@ namespace VoiceChat
 
         public override void StopListenForFrames() {}
 
-        public override void SendFrame(short[] frame)
+        public override void SendFrame(short[] frame, bool newCodecState = false)
         {
             //encode and decode before putting it in the buffer for debugging
+            
+            if (newCodecState) AudioCodec.Reset();
             var encodedFrame = new byte[AudioFormat.SamplesPerFrame];
+            if (AudioCodec.GetType() == typeof(DummyAudioCodec)) encodedFrame = new byte[AudioFormat.SamplesPerFrame * sizeof(short)];
             var decodedFrame = new short[AudioFormat.SamplesPerFrame];
             var len = AudioCodec.Encode(frame, encodedFrame);
             Array.Resize(ref encodedFrame, len);
             AudioCodec.Decode(encodedFrame, decodedFrame);
+            
+            //var decodedFrame = new short[AudioFormat.SamplesPerFrame];
+            //Array.Copy(frame, decodedFrame, frame.Length);
             AudioFrameBuffer.AddFrameToBuffer(decodedFrame, Id);
         }
     }

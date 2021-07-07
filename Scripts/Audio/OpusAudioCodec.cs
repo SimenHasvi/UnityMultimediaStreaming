@@ -87,7 +87,7 @@ namespace VoiceChat
 
         public override void ResetDecoder(int id)
         {
-            _decoders[id].ResetState();
+            if (_decoders.ContainsKey(id)) _decoders[id].ResetState();
         }
 
         public override void Reset()

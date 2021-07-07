@@ -22,8 +22,9 @@ namespace VoiceChat
         private AudioFrameBuffer _audioFrameBuffer;
         private AudioProcessor _audioProcessor;
         private List<int> _muted = new List<int>();
+        private short[] _tmpFrame;
         private float[] _frame;
-        
+
         /// <summary>
         /// Start playing the audio.
         /// </summary>
@@ -33,6 +34,7 @@ namespace VoiceChat
         {
             _audioFormat = audioFormat;
             _frame = new float[_audioFormat.SamplesPerFrame];
+            _tmpFrame = new short[_audioFormat.SamplesPerFrame];
             _audioFrameBuffer = audioFrameBuffer;
             _audioProcessor = audioProcessor;
             _audioSource = GetComponent<AudioSource>();
@@ -69,8 +71,12 @@ namespace VoiceChat
         {
             while (true)
             {
-                PlayFrame(_audioFrameBuffer.GetNextFrameFromBuffer(_muted.ToArray()));
-                while (VoiceChatUtils.CircularDistanceTo(_audioSource.timeSamples, _endOfData, _audioSource.clip.samples) > _audioFormat.SamplesPerFrame * _delayFrames) yield return null;
+                while (VoiceChatUtils.CircularDistanceTo(_audioSource.timeSamples, _endOfData, _audioSource.clip.samples) <= _audioFormat.SamplesPerFrame * _delayFrames)
+                {
+                    _audioFrameBuffer.GetNextFrameFromBuffer(_tmpFrame, _muted.ToArray());
+                    PlayFrame(_tmpFrame);
+                }
+                yield return null;
             }
         }
 
@@ -92,6 +98,7 @@ namespace VoiceChat
             _audioSource.clip.SetData(frame, _endOfData);
             _endOfData += _audioFormat.SamplesPerFrame;
             if (_endOfData >= _audioSource.clip.samples) _endOfData = 0;
+            //_audioSource.clip.SetData(new float[_audioFormat.SamplesPerFrame * 20], _endOfData);
         }
 
         /// <summary>

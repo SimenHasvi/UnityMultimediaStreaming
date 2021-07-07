@@ -9,83 +9,52 @@ namespace UnityVoiceChat.Scripts.Audio
     /// </summary>
     public class RingBuffer
     {
-        private short[] _samples;
-        private int _writeCounter = 0;
-        private int _readCounter = 0;
-        private AudioFormat _audioFormat;
-        
-        public RingBuffer(AudioFormat audioFormat, int sizeMs)
-        {
-            _audioFormat = audioFormat;
-            _samples = new short[_audioFormat.SamplesInMs(sizeMs)];
-        }
+        private short[][] _frames;
+        private int _newestFrame = 0;
+        private int _oldestFrame = 0;
 
-        public int Length()
+        public RingBuffer(int frames, AudioFormat audioFormat)
         {
-            return _writeCounter - _readCounter;
-        }
-
-        public void AddSample(short sample)
-        {
-            NormalizeCounters();
-            _samples[_writeCounter++ % _samples.Length] = sample;
-        }
-        
-        public void AddSample(float sample)
-        {
-            AddSample((short)(sample * short.MaxValue));
-        }
-        
-        public void AddSamples(params short[] samples)
-        {
-            foreach (var sample in samples)
+            _frames = new short[frames][];
+            for (var i = 0; i < _frames.Length; i++)
             {
-                AddSample(sample);
-            }            
-        }
-        
-        public void AddSamples(params float[] samples)
-        {
-            foreach (var sample in samples)
-            {
-                AddSample(sample);
-            }            
-        }
-
-        public short GetSample()
-        {
-            NormalizeCounters();
-            if (_readCounter >= _writeCounter) return -1;
-            return _samples[_readCounter++ % _samples.Length];
-        }
-
-        public float GetSampleFloat()
-        {
-            return GetSample() / (float) short.MaxValue;
-        }
-
-        public IEnumerable<short> GetSamples()
-        {
-            while (true)
-            {
-                yield return GetSample();
-            }
-        }
-        
-        public IEnumerable<float> GetSamplesFloat()
-        {
-            while (true)
-            {
-                yield return GetSampleFloat();
+                _frames[i] = new short[audioFormat.SamplesPerFrame];
             }
         }
 
-        private void NormalizeCounters()
+        public ref short[] AddFrame()
         {
-            if (_readCounter < _samples.Length || _writeCounter < _samples.Length) return;
-            var factor = _readCounter / _samples.Length;
-            _readCounter -= factor;
-            _writeCounter -= factor;
+            _newestFrame = StepForward(_newestFrame);
+            if (_oldestFrame == _newestFrame) _oldestFrame = StepForward(_oldestFrame);
+            return ref _frames[_newestFrame];
+        }
+        
+        public IEnumerable<short[]> DumpFrames()
+        {
+            while (StepBack(_newestFrame) != _oldestFrame)
+            {
+                yield return _frames[_newestFrame];
+                _newestFrame = StepBack(_newestFrame);
+            }
+        }
+        
+        public IEnumerable<short[]> DumpFramesReverse()
+        {
+            while (_newestFrame != _oldestFrame)
+            {
+                yield return _frames[_oldestFrame];
+                _oldestFrame = StepForward(_oldestFrame);
+            }
+        }
+
+        private int StepForward(int current)
+        {
+            return current >= _frames.Length - 1 ? 0 : current + 1;
+        }
+        
+        private int StepBack(int current)
+        {
+            return current <= 0 ? _frames.Length-1 : current - 1;
         }
     }
 }

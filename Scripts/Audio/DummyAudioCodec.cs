@@ -1,3 +1,6 @@
+using System;
+using System.Drawing;
+
 namespace VoiceChat
 {
     /// <summary>

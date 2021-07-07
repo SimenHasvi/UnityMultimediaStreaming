@@ -1,11 +1,16 @@
 using System;
+using System.Collections;
 using System.Diagnostics;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using KafkaNet;
 using KafkaNet.Model;
 using KafkaNet.Protocol;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using UnityEngine;
+using UnityEngine.Networking;
 using Debug = UnityEngine.Debug;
 
 namespace VoiceChat
@@ -15,74 +20,153 @@ namespace VoiceChat
     /// </summary>
     public class KafkaVoiceChatNetworkModule : VoiceChatNetworkModule
     {
-        private readonly string _serverTopic;
-        private readonly Consumer _consumer;
+        private readonly string _serverKafkaUri;
+        private readonly string _serverRoomControlUri;
+        private readonly int _roomNr;
+        private readonly string _serverTopicAudioData;
+        private readonly string _serverTopicController;
+        private readonly Consumer _audioDataConsumer;
+        private readonly Consumer _controllerConsumer;
         private readonly Producer _producer;
-        private readonly Thread _consumeThread;
-        private readonly Stopwatch _stopwatch = new Stopwatch();
+        private readonly Thread _consumeAudioDataThread;
+        private readonly Thread _consumeControllerThread;
+
+        private bool _mute = false;
         
         //buffers
         private short[] _frame;
         private byte[] _compressedFrame;
         private byte[] _packet;
         
-        public KafkaVoiceChatNetworkModule(int id, string serverUri, string serverTopic, AudioFormat audioFormat, AudioCodec audioCodec) : base(id, serverUri, audioFormat, audioCodec)
+        public KafkaVoiceChatNetworkModule(int id, string serverUrl, int roomNr, AudioFormat audioFormat, AudioCodec audioCodec) : base(id, serverUrl, audioFormat, audioCodec)
         {
-            _serverTopic = serverTopic;
+            _serverKafkaUri = "kafka://" + serverUrl + ":9092";
+            _serverRoomControlUri = "http://" + serverUrl + ":8080/ci/public/api/room/control/";
+            _roomNr = roomNr;
+            _serverTopicAudioData = "vcr-room-audio-" + _roomNr;
+            _serverTopicController = "vcr-room-control-" + _roomNr;
             _frame = new short[AudioFormat.SamplesPerFrame];
             _compressedFrame = new byte[AudioFormat.SamplesPerFrame];
-            _packet = new byte[AudioFormat.SamplesPerFrame + 1];
-            var options = new ConsumerOptions(serverTopic, new BrokerRouter(new KafkaOptions(new Uri(ServerUri))));
+
+            var options = new ConsumerOptions(_serverTopicAudioData, new BrokerRouter(new KafkaOptions(new Uri(_serverKafkaUri))));
             options.MinimumBytes = 1;
-            _consumer = new Consumer(options);
-            var offsets = _consumer.GetTopicOffsetAsync(serverTopic).Result
+            _audioDataConsumer = new Consumer(options);
+            var offsets = _audioDataConsumer.GetTopicOffsetAsync(_serverTopicAudioData).Result
                 .Select(x => new OffsetPosition(x.PartitionId, x.Offsets.Max())).ToArray();
-            _consumer = new Consumer(options, offsets);
-            _consumeThread = new Thread(Consume);
-            _producer = new Producer(new BrokerRouter(new KafkaOptions(new Uri(ServerUri))));
+            _audioDataConsumer = new Consumer(options, offsets);
+            
+            options = new ConsumerOptions(_serverTopicController, new BrokerRouter(new KafkaOptions(new Uri(_serverKafkaUri))));
+            options.MinimumBytes = 1;
+            _controllerConsumer = new Consumer(options);
+            offsets = _controllerConsumer.GetTopicOffsetAsync(_serverTopicController).Result
+                .Select(x => new OffsetPosition(x.PartitionId, x.Offsets.Max() - 1)).ToArray();
+            _controllerConsumer = new Consumer(options, offsets);
+
+            _consumeAudioDataThread = new Thread(ConsumeController);
+            _consumeControllerThread = new Thread(ConsumeAudioData);
+            _producer = new Producer(new BrokerRouter(new KafkaOptions(new Uri(_serverKafkaUri))));
         }
 
         public override void StartListenForFrames(AudioFrameBuffer audioFrameBuffer)
         {
             AudioFrameBuffer = audioFrameBuffer;
-            _consumeThread.Start();
+            _consumeControllerThread.Start();
+            _consumeAudioDataThread.Start();
         }
 
         public override void StopListenForFrames()
         {
             VoiceChatUtils.Log(VoiceChatUtils.LogType.Info, "Stopping consumer..");
-            _consumeThread.Abort();
+            _consumeControllerThread.Abort();
+            _consumeAudioDataThread.Abort();
             //join thread to wait for it to be aborted
-            _consumeThread.Join();
+            _consumeControllerThread.Join();
+            _consumeAudioDataThread.Join();
         }
 
-        public override void SendFrame(short[] frame)
+        public override void SendFrame(short[] frame, bool newCodecState = false)
         {
-            //if (_stopwatch.ElapsedMilliseconds >= AudioFormat.MillisecondsPerFrame * 2) AudioCodec.ResetEncoder(Id);
-            //_stopwatch.Restart();
+            if (_mute) return; // if muted then dont send anything
             var len = AudioCodec.Encode(frame, _compressedFrame, Id);
-            _packet = new byte[len + 1];
+            _packet = new byte[len + 2];
             _packet[0] = Convert.ToByte(Id);
-            Array.Copy(_compressedFrame, 0, _packet, 1, len);
-            _producer.SendMessageAsync(_serverTopic, new[] {new Message(_packet)});
+            _packet[1] = Convert.ToByte(newCodecState);
+            if (newCodecState) AudioCodec.ResetEncoder(Id);
+            Array.Copy(_compressedFrame, 0, _packet, 2, len);
+            _producer.SendMessageAsync(_serverTopicAudioData, new[] {new Message(_packet)});
         }
 
         /// <summary>
         /// Consumes frames from the kafka server.
         /// This is meant to be ran on its own thread.
         /// </summary> 
-        private void Consume()
+        private void ConsumeAudioData()
         {
-            VoiceChatUtils.Log(VoiceChatUtils.LogType.Info, "Starting kafka consumer on server: " + ServerUri + " topic: " + _serverTopic + " " + _consumer.GetOffsetPosition()[0]);
+            VoiceChatUtils.Log(VoiceChatUtils.LogType.Info, "Starting kafka consumer on server: " + _serverKafkaUri + " topic: " + _serverTopicAudioData + " " + _audioDataConsumer.GetOffsetPosition()[0]);
             int headerId;
-            foreach (var message in _consumer.Consume())
+            bool newCodecState;
+            foreach (var message in _audioDataConsumer.Consume())
             {
                 headerId = Convert.ToInt32(message.Value[0]);
-                _frame = new short[AudioFormat.SamplesPerFrame]; //each entry in the buffer needs to be a new reference, this should probably be changed at some point.
-                //if (AudioFrameBuffer.Count(headerId) <= 0) AudioCodec.ResetDecoder(headerId); //we assume a break in transmission so we reset the codec
-                AudioCodec.Decode(message.Value.Skip(1).ToArray(), _frame, headerId);
+                newCodecState = Convert.ToBoolean(message.Value[1]);
+                if (newCodecState) AudioCodec.ResetDecoder(headerId);
+                _frame = new short[AudioFormat.SamplesPerFrame]; //each entry in the buffer needs to be a new reference, this should probably be changed at some point
+                AudioCodec.Decode(message.Value.Skip(2).ToArray(), _frame, headerId);
                 AudioFrameBuffer.AddFrameToBuffer(_frame, headerId);
             }
         }
+
+        /// <summary>
+        /// Consume the controller topic
+        /// </summary>
+        private void ConsumeController()
+        {
+            VoiceChatUtils.Log(VoiceChatUtils.LogType.Info, "Starting kafka consumer on server: " + _serverKafkaUri + " topic: " + _serverTopicController + " " + _audioDataConsumer.GetOffsetPosition()[0]);
+            foreach (var message in _controllerConsumer.Consume())
+            {
+                var tmp = JToken.Parse(Encoding.UTF8.GetString(message.Value))["audio_off_users"].Values<int>().Contains(Id);
+                if (tmp != _mute)
+                {
+                    if (tmp) VoiceChatUtils.Log(VoiceChatUtils.LogType.Info, "You have been muted.");
+                    else VoiceChatUtils.Log(VoiceChatUtils.LogType.Info, "You have been un muted.");
+                }
+                _mute = tmp;
+            }
+        }
+
+        public IEnumerator MuteUser(int userId, string userToken)
+        {
+            var form = new WWWForm();
+            form.AddField("room_id", _roomNr);
+            if (userId != Id) form.AddField("user_id", userId);
+
+            var request = UnityWebRequest.Post(_serverRoomControlUri + "offAudio", form);
+            request.SetRequestHeader("Authorization", userToken);
+
+            yield return request.SendWebRequest();
+        
+            if (request.isNetworkError || request.isHttpError)
+            {
+                VoiceChatUtils.Log(VoiceChatUtils.LogType.Warning, request.error);
+            }
+        }
+        
+        public IEnumerator UnMuteUser(int userId, string userToken)
+        {
+            var form = new WWWForm();
+            form.AddField("room_id", _roomNr);
+            if (userId != Id) form.AddField("user_id", userId);
+
+            var request = UnityWebRequest.Post(_serverRoomControlUri + "onAudio", form);
+            request.SetRequestHeader("Authorization", userToken);
+
+            yield return request.SendWebRequest();
+        
+            if (request.isNetworkError || request.isHttpError)
+            {
+                VoiceChatUtils.Log(VoiceChatUtils.LogType.Warning, request.error);
+            }
+        }
+        
     }
 }

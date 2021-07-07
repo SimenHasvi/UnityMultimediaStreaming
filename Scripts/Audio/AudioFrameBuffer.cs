@@ -30,6 +30,11 @@ namespace VoiceChat
         private readonly Dictionary<int, Queue<short[]>> _frameBuffers = new Dictionary<int, Queue<short[]>>();
 
         /// <summary>
+        /// Lock the buffers, they will appear empty in this case
+        /// </summary>
+        private readonly Dictionary<int, bool> _bufferLocks = new Dictionary<int, bool>();
+
+        /// <summary>
         /// Create the buffer object.
         /// </summary>
         /// <param name="audioFormat">The audio format stored in this buffer.</param>
@@ -98,6 +103,7 @@ namespace VoiceChat
             {
                 VoiceChatUtils.Log(VoiceChatUtils.LogType.VerboseInfo, "Created a new buffer for user: " + id);
                 _frameBuffers.Add(id, new Queue<short[]>());
+                _bufferLocks.Add(id, false);
             }
             else if (Count(id) > MaxFramesInBuffer)
             {
@@ -119,8 +125,9 @@ namespace VoiceChat
             {
                 lock (frameBuffer.Value.Peek())
                 {
+                    if (_bufferLocks[frameBuffer.Key]) continue; //the buffer is locked
                     var frame = frameBuffer.Value.Dequeue();
-                    if (excludeId.Contains(frameBuffer.Key)) continue;
+                    if (excludeId.Contains(frameBuffer.Key)) continue; //the buffer is muted
                     for (var i = 0; i < combinedFrame.Length; i++)
                     {
                         combinedFrame[i] += frame[i];
@@ -128,6 +135,41 @@ namespace VoiceChat
                 }
             }
             return combinedFrame;
+        }
+
+        /// <summary>
+        /// Get the next frame from the buffer.
+        /// </summary>
+        /// <param name="combinedFrame">The frame buffer to add the sounds to.</param>
+        /// <param name="excludeId">ID's to not include in the frame. Used to mute someone or exclude your own voice.</param>
+        /// <returns>If the given frame contains any sound.</returns>
+        public bool GetNextFrameFromBuffer(short[] combinedFrame, params int[] excludeId)
+        {
+            var containsSound = false;
+            for (var i = 0; i < combinedFrame.Length; i++)
+            {
+                combinedFrame[i] = 0;
+            }
+            foreach (var frameBuffer in _frameBuffers.Where(frameBuffer => frameBuffer.Value.Count > 0))
+            {
+                lock (frameBuffer.Value.Peek())
+                {
+                    if (_bufferLocks[frameBuffer.Key])//the buffer is locked
+                    {
+                        if (frameBuffer.Value.Count() >= 10) _bufferLocks[frameBuffer.Key] = false; //unlock buffer
+                        else continue;
+                    }
+                    var frame = frameBuffer.Value.Dequeue();
+                    //if (frameBuffer.Value.Count <= 0) _bufferLocks[frameBuffer.Key] = true;
+                    if (excludeId.Contains(frameBuffer.Key)) continue; //the buffer is muted
+                    containsSound = true;
+                    for (var i = 0; i < combinedFrame.Length; i++)
+                    {
+                        combinedFrame[i] += frame[i];
+                    }
+                }
+            }
+            return containsSound;
         }
 
         /// <summary>

@@ -383,9 +383,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   playSelf: 1
-  id: 1
-  serverUri: kafka://virtualclassroom-server.cs.hku.hk:9092
-  serverTopic: vcr-room-audio-15
+  id: 22
+  serverUrl: virtualclassroom-server.cs.hku.hk
+  roomNumber: 15
   localNetwork: 1
   sampleRate: 16000
   millisecondsPerFrame: 20
@@ -395,20 +395,20 @@ MonoBehaviour:
   voiceActivityDetector: 0
   acousticEchoCancellation: 0
   deReverb: 0
-  aecFilterLengthMs: 200
+  aecFilterLengthMs: 1000
   agcLevel: 10000
   deReverbLevel: 0.5
   deReverbDecay: 0.5
-  vadProbStart: 95
-  vadProbContinue: 95
+  vadProbStart: 99
+  vadProbContinue: 80
   noiseSuppress: -45
   echoSuppress: -25
   echoSuppressActive: -40
-  agcIncrement: 12
-  agcDecrement: -12
+  agcIncrement: 50
+  agcDecrement: -25
   agcMaxGain: 30
   agcTarget: 10000
-  doCompression: 1
+  doCompression: 0
   bitrate: 14000
   complexity: 10
 --- !u!4 &1834242299
@@ -536,8 +536,8 @@ MonoBehaviour:
   playSilence: 1
   clipToPlay: {fileID: 8300000, guid: 8f6c095f6a01ba17d805dd5fc0058ca2, type: 3}
   id: 2
-  serverUri: kafka://virtualclassroom-server.cs.hku.hk:9092
-  serverTopic: vcr-room-audio-15
+  serverUrl: 
+  roomNumber: 0
   sampleRate: 16000
   millisecondsPerFrame: 20
   millisecondsInBuffer: 500
