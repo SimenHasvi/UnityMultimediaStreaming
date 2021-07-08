@@ -46,6 +46,23 @@ namespace UnityMultimediaStreaming.Scripts.Audio
             }
         }
 
+        public int Count()
+        {
+            var tmp = _newestFrame;
+            var i = 0;
+            while (tmp != _oldestFrame)
+            {
+                i++;
+                tmp = StepBack(tmp);
+            }
+            return i;
+        }
+
+        public bool IsFull()
+        {
+            return StepForward(_newestFrame) == _oldestFrame;
+        }
+
         private int StepForward(int current)
         {
             return current >= _frames.Length - 1 ? 0 : current + 1;

@@ -134,7 +134,7 @@ namespace UnityMultimediaStreaming.Scripts.Audio
                 else
                 {
                     //since there is a gap in the sent audio signal we need to reset the encoder the next frame sent
-                    _resetEncoderState = true;
+                    if (recordedFrames.IsFull()) _resetEncoderState = true;
                 }
             }
         }
