@@ -1,7 +1,4 @@
-using UnityEditor;
-using UnityEngine.UIElements;
-
-namespace VoiceChat
+namespace UnityMultimediaStreaming.Scripts.Audio
 {
     /// <summary>
     /// Contains information about a given audio format such as sample rate and frames.

@@ -1,9 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using KafkaNet.Common;
+using UnityMultimediaStreaming.Plugins.Common;
+using UnityMultimediaStreaming.Plugins.Interfaces;
 
-namespace KafkaNet.Protocol
+namespace UnityMultimediaStreaming.Plugins.Protocol
 {
     /// <summary>
     /// Class that represents the api call to commit a specific set of offsets for a given topic.  The offset is saved under the 

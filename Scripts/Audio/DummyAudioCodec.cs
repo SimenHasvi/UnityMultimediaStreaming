@@ -1,7 +1,4 @@
-using System;
-using System.Drawing;
-
-namespace VoiceChat
+namespace UnityMultimediaStreaming.Scripts.Audio
 {
     /// <summary>
     /// Audio codec object, that doesnt actually do anything.

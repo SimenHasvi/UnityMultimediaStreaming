@@ -1,7 +1,7 @@
 using System.Collections.Generic;
-using KafkaNet.Protocol;
+using UnityMultimediaStreaming.Plugins.Protocol;
 
-namespace KafkaNet
+namespace UnityMultimediaStreaming.Plugins.Interfaces
 {
     /// <summary>
     /// KafkaRequest represents a Kafka request messages as an object which can Encode itself into the appropriate 

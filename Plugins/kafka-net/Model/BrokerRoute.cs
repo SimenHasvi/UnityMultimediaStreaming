@@ -1,4 +1,6 @@
-﻿namespace KafkaNet
+﻿using UnityMultimediaStreaming.Plugins.Interfaces;
+
+namespace UnityMultimediaStreaming.Plugins.Model
 {
     public class BrokerRoute
     {

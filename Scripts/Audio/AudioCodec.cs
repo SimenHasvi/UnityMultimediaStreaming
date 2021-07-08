@@ -1,6 +1,4 @@
-using UnityEditor;
-
-namespace VoiceChat
+namespace UnityMultimediaStreaming.Scripts.Audio
 {
     /// <summary>
     /// Abstract class for an audio codec, providing methods for compression.

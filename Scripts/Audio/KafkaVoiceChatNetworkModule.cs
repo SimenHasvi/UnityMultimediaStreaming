@@ -1,19 +1,16 @@
 using System;
 using System.Collections;
-using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading;
-using KafkaNet;
-using KafkaNet.Model;
-using KafkaNet.Protocol;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
 using UnityEngine.Networking;
-using Debug = UnityEngine.Debug;
+using UnityMultimediaStreaming.Plugins;
+using UnityMultimediaStreaming.Plugins.Model;
+using UnityMultimediaStreaming.Plugins.Protocol;
 
-namespace VoiceChat
+namespace UnityMultimediaStreaming.Scripts.Audio
 {
     /// <summary>
     /// Networking module using kafka as the backend

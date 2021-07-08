@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
 
-namespace KafkaNet.Common
+namespace UnityMultimediaStreaming.Plugins.Common
 {
     public class ConcurrentCircularBuffer<T> : IEnumerable<T>
     {

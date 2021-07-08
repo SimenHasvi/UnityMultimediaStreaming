@@ -1,6 +1,6 @@
-﻿using KafkaNet.Protocol;
+﻿using UnityMultimediaStreaming.Plugins.Protocol;
 
-namespace KafkaNet
+namespace UnityMultimediaStreaming.Plugins.Interfaces
 {
     public interface IPartitionSelector
     {

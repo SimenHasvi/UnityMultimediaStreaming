@@ -1,7 +1,6 @@
 using UnityEngine;
-using VoiceChat;
 
-namespace UnityVoiceChat.Scripts.Video
+namespace UnityMultimediaStreaming.Scripts.Video
 {
     
     /// <summary>

@@ -5,7 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 
-namespace KafkaNet.Common
+namespace UnityMultimediaStreaming.Plugins.Common
 {
     /// <summary>
     /// A BinaryReader that is BigEndian aware binary reader.

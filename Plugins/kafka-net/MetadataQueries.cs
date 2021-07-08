@@ -1,10 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using KafkaNet.Protocol;
+using UnityMultimediaStreaming.Plugins.Interfaces;
+using UnityMultimediaStreaming.Plugins.Protocol;
 
-namespace KafkaNet
+namespace UnityMultimediaStreaming.Plugins
 {
     /// <summary>
     /// This class provides a set of common queries that are useful for both the Consumer and Producer classes.  

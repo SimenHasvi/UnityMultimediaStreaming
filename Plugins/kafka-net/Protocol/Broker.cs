@@ -1,7 +1,7 @@
 ﻿using System;
-using KafkaNet.Common;
+using UnityMultimediaStreaming.Plugins.Common;
 
-namespace KafkaNet.Protocol
+namespace UnityMultimediaStreaming.Plugins.Protocol
 {
     public class Broker
     {

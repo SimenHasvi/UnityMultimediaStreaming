@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Timers;
 
-namespace KafkaNet.Common
+namespace UnityMultimediaStreaming.Plugins.Common
 {
     public enum ScheduledTimerStatus
     {

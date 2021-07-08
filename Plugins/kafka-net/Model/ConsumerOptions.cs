@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using KafkaNet.Protocol;
+using UnityMultimediaStreaming.Plugins.Default;
+using UnityMultimediaStreaming.Plugins.Interfaces;
+using UnityMultimediaStreaming.Plugins.Protocol;
 
-namespace KafkaNet.Model
+namespace UnityMultimediaStreaming.Plugins.Model
 {
     public class ConsumerOptions
     {

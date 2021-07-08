@@ -1,11 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using Concentus.Enums;
 using Concentus.Structs;
-using UnityEngine;
 
-namespace VoiceChat
+namespace UnityMultimediaStreaming.Scripts.Audio
 {
     public class OpusAudioCodec : AudioCodec
     {

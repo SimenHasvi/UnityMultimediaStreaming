@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityMultimediaStreaming.Plugins.Common;
+using UnityMultimediaStreaming.Plugins.Interfaces;
 
-using KafkaNet.Common;
-
-namespace KafkaNet.Protocol
+namespace UnityMultimediaStreaming.Plugins.Protocol
 {
     /// <summary>
     /// Class that represents both the request and the response from a kafka server of requesting a stored offset value

@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Linq;
-using KafkaNet.Common;
-using KafkaNet.Model;
-using KafkaNet.Protocol;
+using UnityMultimediaStreaming.Plugins.Common;
+using UnityMultimediaStreaming.Plugins.Interfaces;
+using UnityMultimediaStreaming.Plugins.Protocol;
 
-namespace KafkaNet
+namespace UnityMultimediaStreaming.Plugins.Default
 {
     public class DefaultPartitionSelector : IPartitionSelector
     {

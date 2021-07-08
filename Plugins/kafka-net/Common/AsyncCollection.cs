@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace KafkaNet.Common
+namespace UnityMultimediaStreaming.Plugins.Common
 {
     public class AsyncCollection<T>
     {

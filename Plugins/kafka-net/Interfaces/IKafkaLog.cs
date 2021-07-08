@@ -1,4 +1,4 @@
-﻿namespace KafkaNet
+﻿namespace UnityMultimediaStreaming.Plugins.Interfaces
 {
     public interface IKafkaLog
     {

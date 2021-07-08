@@ -2,10 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using KafkaNet.Common;
-using KafkaNet.Statistics;
+using UnityMultimediaStreaming.Plugins.Common;
+using UnityMultimediaStreaming.Plugins.Interfaces;
+using UnityMultimediaStreaming.Plugins.Statistics;
 
-namespace KafkaNet.Protocol
+namespace UnityMultimediaStreaming.Plugins.Protocol
 {
     public class ProduceRequest : BaseRequest, IKafkaRequest<ProduceResponse>
     {

@@ -4,11 +4,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using KafkaNet.Common;
-using KafkaNet.Model;
-using KafkaNet.Protocol;
+using UnityMultimediaStreaming.Plugins.Common;
+using UnityMultimediaStreaming.Plugins.Default;
+using UnityMultimediaStreaming.Plugins.Interfaces;
+using UnityMultimediaStreaming.Plugins.Model;
+using UnityMultimediaStreaming.Plugins.Protocol;
 
-namespace KafkaNet
+namespace UnityMultimediaStreaming.Plugins
 {
     /// <summary>
     /// KafkaConnection represents the lowest level TCP stream connection to a Kafka broker. 

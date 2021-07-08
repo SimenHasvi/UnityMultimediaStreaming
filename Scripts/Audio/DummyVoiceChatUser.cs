@@ -1,10 +1,9 @@
 using System.Collections;
-using System.Collections.Generic;
 using System.Diagnostics;
 using UnityEngine;
 using Debug = UnityEngine.Debug;
 
-namespace VoiceChat
+namespace UnityMultimediaStreaming.Scripts.Audio
 {
     /// <summary>
     /// A class which will send some data to the server, for debugging purposes

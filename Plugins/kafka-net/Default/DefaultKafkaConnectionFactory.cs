@@ -2,10 +2,11 @@
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
-using KafkaNet.Model;
-using KafkaNet.Protocol;
+using UnityMultimediaStreaming.Plugins.Interfaces;
+using UnityMultimediaStreaming.Plugins.Model;
+using UnityMultimediaStreaming.Plugins.Protocol;
 
-namespace KafkaNet
+namespace UnityMultimediaStreaming.Plugins.Default
 {
     public class DefaultKafkaConnectionFactory : IKafkaConnectionFactory
     {

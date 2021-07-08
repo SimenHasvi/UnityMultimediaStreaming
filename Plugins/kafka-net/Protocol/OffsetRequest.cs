@@ -1,9 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using KafkaNet.Common;
+using UnityMultimediaStreaming.Plugins.Common;
+using UnityMultimediaStreaming.Plugins.Interfaces;
 
-namespace KafkaNet.Protocol
+namespace UnityMultimediaStreaming.Plugins.Protocol
 {
     /// <summary>
     /// A funky Protocol for requesting the starting offset of each segment for the requested partition 

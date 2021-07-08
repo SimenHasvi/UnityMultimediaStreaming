@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using KafkaNet.Common;
+using UnityMultimediaStreaming.Plugins.Common;
 
-namespace KafkaNet.Protocol
+namespace UnityMultimediaStreaming.Plugins.Protocol
 {
     public class Topic
     {

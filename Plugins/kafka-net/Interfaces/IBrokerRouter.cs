@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using KafkaNet.Protocol;
+using UnityMultimediaStreaming.Plugins.Model;
+using UnityMultimediaStreaming.Plugins.Protocol;
 
-namespace KafkaNet
+namespace UnityMultimediaStreaming.Plugins.Interfaces
 {
     public interface IBrokerRouter : IDisposable
     {

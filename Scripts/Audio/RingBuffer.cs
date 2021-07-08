@@ -1,7 +1,6 @@
 using System.Collections.Generic;
-using VoiceChat;
 
-namespace UnityVoiceChat.Scripts.Audio
+namespace UnityMultimediaStreaming.Scripts.Audio
 {
     
     /// <summary>

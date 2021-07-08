@@ -1,8 +1,7 @@
 using System;
 using System.Runtime.InteropServices;
-using UnityEngine.PlayerLoop;
 
-namespace VoiceChat
+namespace UnityMultimediaStreaming.Scripts.Audio
 {
     /// <inheritdoc />
     public class SpeexDspAudioProcessor : AudioProcessor

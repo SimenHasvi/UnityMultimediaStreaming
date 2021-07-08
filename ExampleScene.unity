@@ -219,7 +219,6 @@ GameObject:
   - component: {fileID: 1710431355}
   - component: {fileID: 1710431354}
   - component: {fileID: 1710431353}
-  - component: {fileID: 1710431358}
   m_Layer: 5
   m_Name: VideoCanvas
   m_TagString: Untagged
@@ -331,25 +330,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 0}
---- !u!114 &1710431358
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1710431352}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ebfca304f71d4bdbad5a84b4b0af960f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  id: 0
-  serverUri: kafka://virtualclassroom-server.cs.hku.hk:9092
-  serverTopic: vcr-room-audio-15
-  localNetwork: 1
-  compressionQuality: 40
-  resolution: 1
-  requestedFPS: 20
 --- !u!1 &1834242297
 GameObject:
   m_ObjectHideFlags: 0
@@ -361,8 +341,6 @@ GameObject:
   - component: {fileID: 1834242299}
   - component: {fileID: 1834242300}
   - component: {fileID: 1834242298}
-  - component: {fileID: 1834242301}
-  - component: {fileID: 1834242302}
   m_Layer: 0
   m_Name: VoiceChat
   m_TagString: Untagged
@@ -379,36 +357,37 @@ MonoBehaviour:
   m_GameObject: {fileID: 1834242297}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fb5e212b35b1a3733afca06767a1a299, type: 3}
+  m_Script: {fileID: 11500000, guid: 3ab0850dd4b81d61b8323ec0b65be30d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  targetFPS: 0
   playSelf: 1
-  id: 22
+  id: 0
   serverUrl: virtualclassroom-server.cs.hku.hk
   roomNumber: 15
-  localNetwork: 1
+  localNetwork: 0
   sampleRate: 16000
   millisecondsPerFrame: 20
   millisecondsInBuffer: 500
   deNoise: 1
   automaticGainControl: 1
-  voiceActivityDetector: 0
+  voiceActivityDetector: 1
   acousticEchoCancellation: 0
   deReverb: 0
-  aecFilterLengthMs: 1000
-  agcLevel: 10000
-  deReverbLevel: 0.5
-  deReverbDecay: 0.5
+  aecFilterLengthMs: 200
+  agcLevel: 0
+  deReverbLevel: 0
+  deReverbDecay: 0
   vadProbStart: 99
   vadProbContinue: 80
   noiseSuppress: -45
-  echoSuppress: -25
-  echoSuppressActive: -40
-  agcIncrement: 50
-  agcDecrement: -25
+  echoSuppress: -40
+  echoSuppressActive: -15
+  agcIncrement: 12
+  agcDecrement: -40
   agcMaxGain: 30
   agcTarget: 10000
-  doCompression: 0
+  doCompression: 1
   bitrate: 14000
   complexity: 10
 --- !u!4 &1834242299
@@ -521,59 +500,6 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
---- !u!114 &1834242301
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1834242297}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4fb36ae0af734049a5156b7443707b40, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  playSilence: 1
-  clipToPlay: {fileID: 8300000, guid: 8f6c095f6a01ba17d805dd5fc0058ca2, type: 3}
-  id: 2
-  serverUrl: 
-  roomNumber: 0
-  sampleRate: 16000
-  millisecondsPerFrame: 20
-  millisecondsInBuffer: 500
-  doCompression: 1
-  bitrate: 14000
-  complexity: 10
---- !u!114 &1834242302
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1834242297}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 028e856eab5147618e0f3edd9bea8098, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  aec: 0
-  aecFilterLengthMs: 200
-  deNoise: 1
-  agc: 1
-  vad: 0
-  agcLevel: 10000
-  deReverb: 0
-  deReverbLevel: 0.5
-  deReverbDecay: 0.5
-  vadProbStart: 95
-  vadProbContinue: 95
-  noiseSuppress: -45
-  echoSuppress: -25
-  echoSuppressActive: -40
-  agcIncrement: 12
-  agcDecrement: -12
-  agcMaxGain: 30
-  agcTarget: 10000
 --- !u!1 &2021057158
 GameObject:
   m_ObjectHideFlags: 0

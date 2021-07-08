@@ -1,12 +1,10 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.Windows.WebCam;
-using VoiceChat;
+using UnityMultimediaStreaming.Scripts.Audio;
 
-namespace UnityVoiceChat.Scripts.Video
+namespace UnityMultimediaStreaming.Scripts.Video
 {
     public class VideoStream : MonoBehaviour
     {

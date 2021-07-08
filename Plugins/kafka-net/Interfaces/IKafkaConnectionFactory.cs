@@ -1,7 +1,7 @@
-﻿using KafkaNet.Model;
-using System;
+﻿using System;
+using UnityMultimediaStreaming.Plugins.Model;
 
-namespace KafkaNet
+namespace UnityMultimediaStreaming.Plugins.Interfaces
 {
     public interface IKafkaConnectionFactory
     {

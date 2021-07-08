@@ -5,9 +5,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
-using VoiceChat;
 
-namespace UnityVoiceChat.Scripts.Audio
+namespace UnityMultimediaStreaming.Scripts.Audio
 {
 	public static class SaveWav {
 

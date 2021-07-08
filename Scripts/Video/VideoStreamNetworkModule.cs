@@ -1,7 +1,7 @@
 using UnityEngine;
-using VoiceChat;
+using UnityMultimediaStreaming.Scripts.Audio;
 
-namespace UnityVoiceChat.Scripts.Video
+namespace UnityMultimediaStreaming.Scripts.Video
 {
     public abstract class VideoStreamNetworkModule
     {

@@ -1,14 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using KafkaNet.Common;
-using KafkaNet.Protocol;
+using UnityMultimediaStreaming.Plugins.Common;
+using UnityMultimediaStreaming.Plugins.Interfaces;
+using UnityMultimediaStreaming.Plugins.Model;
+using UnityMultimediaStreaming.Plugins.Protocol;
 
-
-namespace KafkaNet
+namespace UnityMultimediaStreaming.Plugins
 {
     /// <summary>
     /// Provides a simplified high level API for producing messages on a topic.

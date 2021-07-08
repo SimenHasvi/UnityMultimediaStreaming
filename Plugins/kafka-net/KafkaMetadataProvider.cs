@@ -2,9 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using KafkaNet.Protocol;
+using UnityMultimediaStreaming.Plugins.Interfaces;
+using UnityMultimediaStreaming.Plugins.Protocol;
 
-namespace KafkaNet
+namespace UnityMultimediaStreaming.Plugins
 {
     /// <summary>
     /// This provider blocks while it attempts to get the MetaData configuration of the Kafka servers.  If any retry errors occurs it will

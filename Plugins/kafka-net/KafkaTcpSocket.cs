@@ -3,14 +3,15 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Net.Sockets;
-using System.Threading.Tasks;
 using System.Threading;
-using KafkaNet.Common;
-using KafkaNet.Model;
-using KafkaNet.Protocol;
-using KafkaNet.Statistics;
+using System.Threading.Tasks;
+using UnityMultimediaStreaming.Plugins.Common;
+using UnityMultimediaStreaming.Plugins.Interfaces;
+using UnityMultimediaStreaming.Plugins.Model;
+using UnityMultimediaStreaming.Plugins.Protocol;
+using UnityMultimediaStreaming.Plugins.Statistics;
 
-namespace KafkaNet
+namespace UnityMultimediaStreaming.Plugins
 {
     /// <summary>
     /// The TcpSocket provides an abstraction from the main driver from having to handle connection to and reconnections with a server.

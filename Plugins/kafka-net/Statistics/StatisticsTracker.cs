@@ -3,10 +3,10 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using KafkaNet.Common;
-using KafkaNet.Model;
+using UnityMultimediaStreaming.Plugins.Common;
+using UnityMultimediaStreaming.Plugins.Model;
 
-namespace KafkaNet.Statistics
+namespace UnityMultimediaStreaming.Plugins.Statistics
 {
     /// <summary>
     /// Statistics tracker uses circular buffers to capture a maximum set of current statistics.  

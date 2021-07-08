@@ -1,9 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using VoiceChat;
+using UnityMultimediaStreaming.Scripts.Audio;
 
-namespace UnityVoiceChat.Scripts.Video
+namespace UnityMultimediaStreaming.Scripts.Video
 {
     /// <summary>
     /// Class to manage a webcamera connection

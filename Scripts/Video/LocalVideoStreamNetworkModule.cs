@@ -1,4 +1,4 @@
-namespace UnityVoiceChat.Scripts.Video
+namespace UnityMultimediaStreaming.Scripts.Video
 {
     public class LocalVideoStreamNetworkModule : VideoStreamNetworkModule
     {

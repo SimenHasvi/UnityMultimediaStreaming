@@ -1,7 +1,8 @@
 using System;
-using KafkaNet.Common;
+using UnityMultimediaStreaming.Plugins.Common;
+using UnityMultimediaStreaming.Plugins.Interfaces;
 
-namespace KafkaNet.Protocol
+namespace UnityMultimediaStreaming.Plugins.Protocol
 {
     public abstract class BaseRequest
     {

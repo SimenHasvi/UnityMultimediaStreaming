@@ -1,8 +1,9 @@
-﻿using KafkaNet.Protocol;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-namespace KafkaNet
+using UnityMultimediaStreaming.Plugins.Protocol;
+
+namespace UnityMultimediaStreaming.Plugins.Interfaces
 {
     /// <summary>
     /// Contains common metadata query commands that are used by both a consumer and producer.
@@ -23,6 +24,6 @@ namespace KafkaNet
         /// <param name="maxOffsets"></param>
         /// <param name="time"></param>
         /// <returns></returns>
-        Task<List<KafkaNet.Protocol.OffsetResponse>> GetTopicOffsetAsync(string topic, int maxOffsets = 2, int time = -1);
+        Task<List<OffsetResponse>> GetTopicOffsetAsync(string topic, int maxOffsets = 2, int time = -1);
     }
 }

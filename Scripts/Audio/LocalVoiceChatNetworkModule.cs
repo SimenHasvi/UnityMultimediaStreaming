@@ -1,8 +1,6 @@
 using System;
-using UnityEditor.UIElements;
-using UnityEngine;
 
-namespace VoiceChat
+namespace UnityMultimediaStreaming.Scripts.Audio
 {
     
     /// <summary>

@@ -1,4 +1,4 @@
-namespace VoiceChat
+namespace UnityMultimediaStreaming.Scripts.Audio
 {
     /// <summary>
     /// Abstract module for handling networking.

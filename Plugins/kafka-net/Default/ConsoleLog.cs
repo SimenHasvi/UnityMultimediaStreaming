@@ -1,6 +1,7 @@
 ﻿using System;
+using UnityMultimediaStreaming.Plugins.Interfaces;
 
-namespace KafkaNet
+namespace UnityMultimediaStreaming.Plugins.Default
 {
     /// <summary>
     /// This class simply logs all information out to the console. Usefull for 

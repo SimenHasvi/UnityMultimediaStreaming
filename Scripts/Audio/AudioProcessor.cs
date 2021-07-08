@@ -1,7 +1,7 @@
 using System.Collections;
 using UnityEngine;
 
-namespace VoiceChat
+namespace UnityMultimediaStreaming.Scripts.Audio
 {
     /// <summary>
     /// Abstract class for an audio processor.

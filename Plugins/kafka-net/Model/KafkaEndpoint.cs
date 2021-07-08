@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Net;
 
-namespace KafkaNet.Model
+namespace UnityMultimediaStreaming.Plugins.Model
 {
     public class KafkaEndpoint
     {

@@ -1,12 +1,12 @@
 using System;
 using System.Linq;
 using System.Threading;
-using KafkaNet;
-using KafkaNet.Model;
-using KafkaNet.Protocol;
-using VoiceChat;
+using UnityMultimediaStreaming.Plugins;
+using UnityMultimediaStreaming.Plugins.Model;
+using UnityMultimediaStreaming.Plugins.Protocol;
+using UnityMultimediaStreaming.Scripts.Audio;
 
-namespace UnityVoiceChat.Scripts.Video
+namespace UnityMultimediaStreaming.Scripts.Video
 {
     public class KafkaVideoStreamNetworkModule : VideoStreamNetworkModule
     {

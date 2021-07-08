@@ -1,10 +1,7 @@
-using System;
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityVoiceChat.Scripts.Audio;
 
-namespace VoiceChat
+namespace UnityMultimediaStreaming.Scripts.Audio
 {
     public class VoiceChat : MonoBehaviour
     {
@@ -28,15 +25,15 @@ namespace VoiceChat
         [Header("Audio Processing")]
         public bool deNoise = true;
         public bool automaticGainControl = true;
-        public bool voiceActivityDetector = false;
+        public bool voiceActivityDetector = true;
         public bool acousticEchoCancellation = true;
         public bool deReverb = false;
         public int aecFilterLengthMs = 200;
         public float agcLevel = 0;
         public float deReverbLevel = 0;
         public float deReverbDecay = 0;
-        public int vadProbStart = 95;
-        public int vadProbContinue = 95;
+        public int vadProbStart = 99;
+        public int vadProbContinue = 80;
         public int noiseSuppress = -45;
         public int echoSuppress = -40;
         public int echoSuppressActive = -15;

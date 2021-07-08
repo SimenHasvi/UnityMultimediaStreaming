@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Cryptography;
-using KafkaNet.Common;
+using UnityMultimediaStreaming.Plugins.Common;
 
-namespace KafkaNet.Protocol
+namespace UnityMultimediaStreaming.Plugins.Protocol
 {
     /// <summary>
     /// Buffer represents a collection of messages to be posted to a specified Topic on specified Partition.

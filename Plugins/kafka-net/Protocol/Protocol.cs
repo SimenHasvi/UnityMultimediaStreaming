@@ -2,7 +2,7 @@
 using System.IO;
 using System.IO.Compression;
 
-namespace KafkaNet.Protocol
+namespace UnityMultimediaStreaming.Plugins.Protocol
 {
     /// <summary>
     /// Extension methods which allow compression of byte arrays

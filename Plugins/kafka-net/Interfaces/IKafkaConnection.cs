@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using KafkaNet.Model;
+using UnityMultimediaStreaming.Plugins.Model;
 
-namespace KafkaNet
+namespace UnityMultimediaStreaming.Plugins.Interfaces
 {
     public interface IKafkaConnection : IDisposable
     {
