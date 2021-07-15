@@ -1,103 +1,74 @@
+using System;
 using System.Collections;
+using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
 
 namespace UnityMultimediaStreaming.Scripts.Audio
 {
     public class AecTest : MonoBehaviour
     {
-        [Header("Here you can play around with various settings")]
-        public bool aec = false;
-        public int aecFilterLengthMs = 100;
-        public bool deNoise = false;
-        public bool agc = false;
-        public bool vad = false;
-        public float agcLevel = 0;
-        public bool deReverb = false;
-        public float deReverbLevel = 0;
-        public float deReverbDecay = 0;
-        public int vadProbStart = 35;
-        public int vadProbContinue = 20;
-        public int noiseSuppress = -15;
-        public int echoSuppress = -40;
-        public int echoSuppressActive = -15;
-        public int agcIncrement = 12;
-        public int agcDecrement = -40;
-        public int agcMaxGain = 30;
-        public int agcTarget = 8000;
-
         private AudioFormat _audioFormat;
-        private AudioFrameBuffer _frameBuffer;
-        private AudioFrameBuffer _debugFrameBuffer;
-        private DummyAudioCodec _audioCodec;
-        private LocalVoiceChatNetworkModule _networkModule;
-        private SpeexDspAudioProcessor _audioProcessor;
-        private AudioPlayback _audioPlayback;
+        private AudioProcessor _audioProcessor;
+        private AudioProcessor _audioProcessorNoAEC;
         
-        private int _lastPos, _pos = 0;
-        private AudioClip _mic;
-        
-        void Start()
+        public void Start()
         {
-            VoiceChatUtils.EnableUnityLogging(true);
             _audioFormat = new AudioFormat(16000, 20);
-            _audioCodec = new DummyAudioCodec(_audioFormat);
-            _frameBuffer = new AudioFrameBuffer(_audioFormat);
-            //_debugFrameBuffer = new AudioFrameBuffer(_audioFormat);
-            //_debugFrameBuffer.SetBufferSizeMs(100000);
-            _audioProcessor = new SpeexDspAudioProcessor(_audioFormat, aec, aecFilterLengthMs);
-            _audioProcessor.Configure
-            (
-                deNoise,
-                agc,
-                vad,
-                agcLevel,
-                deReverb,
-                deReverbLevel,
-                deReverbDecay,
-                vadProbStart,
-                vadProbContinue,
-                noiseSuppress,
-                echoSuppress,
-                echoSuppressActive,
-                agcIncrement,
-                agcDecrement,
-                agcMaxGain,
-                agcTarget
-            );
-            _networkModule = new LocalVoiceChatNetworkModule(_audioFormat, _audioCodec);
-            _networkModule.StartListenForFrames(_frameBuffer);
-            gameObject.AddComponent<AudioPlayback>();
-            _audioPlayback = GetComponent<AudioPlayback>();
-            _audioPlayback.Play(_audioFormat, _frameBuffer, _audioProcessor);
-            //_audioPlayback.Play(_audioFormat, _frameBuffer);
+            _audioProcessor = new SpeexDspAudioProcessor(_audioFormat, true, 200);
+            _audioProcessorNoAEC = new SpeexDspAudioProcessor(_audioFormat, false);
             StartCoroutine(SampleAudio());
         }
-        
+
         private IEnumerator SampleAudio()
         {
-            _mic = Microphone.Start(Microphone.devices[0], true, 50, _audioFormat.SamplingRate);
-            var frame = new float[_audioFormat.SamplesPerFrame];
-            var shortFrame = new short[_audioFormat.SamplesPerFrame];
-            var outFrame = new short[_audioFormat.SamplesPerFrame];
+            var samples = new List<short>();
+            var samplesNoAEC = new List<short>();
+            
+            var echoFrames = new Queue<short[]>();
+            var echoFramesNoAEC = new Queue<short[]>();
+            
+            for (var i = 0; i < _audioFormat.FramesPerSecond; i++) echoFrames.Enqueue(new short[_audioFormat.SamplesPerFrame]);
+            for (var i = 0; i < _audioFormat.FramesPerSecond; i++) echoFramesNoAEC.Enqueue(new short[_audioFormat.SamplesPerFrame]);
+            
+            var lastPos = 0;
+            var pos = 0;
+            var mic = Microphone.Start(Microphone.devices[0], true, 50, _audioFormat.SamplingRate);
+            var numberOfFrames = 0;
             while (true)
             {
-                while (_pos - _lastPos < frame.Length)
+                var tmp = new float[_audioFormat.SamplesPerFrame];
+                while (pos - lastPos < tmp.Length)
                 {
-                    _pos = Microphone.GetPosition(Microphone.devices[0]);
-                    if (_pos < _lastPos) _lastPos = 0;
+                    pos = Microphone.GetPosition(Microphone.devices[0]);
+                    if (pos < lastPos) lastPos = 0;
                     yield return null;
                 }
-
-                _mic.GetData(frame, _lastPos);
-                _lastPos += frame.Length;
-                VoiceChatUtils.FloatToShort(shortFrame, frame);
-                var vadResult = _audioProcessor.ProcessFrame(shortFrame, outFrame);
-                if (vadResult) _networkModule.SendFrame(outFrame);
-                //if (Input.GetKeyDown(KeyCode.Space)) break;
+                mic.GetData(tmp, lastPos);
+                lastPos += tmp.Length;
+                
+                var frame = new short[_audioFormat.SamplesPerFrame];
+                VoiceChatUtils.FloatToShort(frame, tmp);
+                var echoFrame = echoFrames.Dequeue();
+                for (var i = 0; i < frame.Length; i++) frame[i] += echoFrame[i];
+                var processedFrame = new short[_audioFormat.SamplesPerFrame];
+                _audioProcessor.ProcessFrame(frame, echoFrame, processedFrame);
+                echoFrames.Enqueue(processedFrame);
+                samples.AddRange(processedFrame);
+                
+                frame = new short[_audioFormat.SamplesPerFrame];
+                VoiceChatUtils.FloatToShort(frame, tmp);
+                echoFrame = echoFramesNoAEC.Dequeue();
+                for (var i = 0; i < frame.Length; i++) frame[i] += echoFrame[i];
+                processedFrame = new short[_audioFormat.SamplesPerFrame];
+                _audioProcessorNoAEC.ProcessFrame(frame, echoFrame, processedFrame);
+                echoFramesNoAEC.Enqueue(processedFrame);
+                samplesNoAEC.AddRange(processedFrame);
+                
+                if (++numberOfFrames == _audioFormat.FramesPerSecond * 20) break;
             }
-            //_debugFrameBuffer.DumpBuffers(Application.streamingAssetsPath);
-            //Debug.Log("Debug audio dumped in " + Application.streamingAssetsPath);
-            //Application.Quit();
+            SaveWav.Save(Path.Combine(Application.streamingAssetsPath, "aec"), _audioFormat, VoiceChatUtils.ShortToFloat(samples.ToArray()));
+            SaveWav.Save(Path.Combine(Application.streamingAssetsPath, "noAec"), _audioFormat, VoiceChatUtils.ShortToFloat(samplesNoAEC.ToArray()));
         }
     }
 }

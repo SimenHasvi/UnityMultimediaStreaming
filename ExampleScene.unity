@@ -341,6 +341,7 @@ GameObject:
   - component: {fileID: 1834242299}
   - component: {fileID: 1834242300}
   - component: {fileID: 1834242298}
+  - component: {fileID: 1834242301}
   m_Layer: 0
   m_Name: VoiceChat
   m_TagString: Untagged
@@ -360,8 +361,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3ab0850dd4b81d61b8323ec0b65be30d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  targetFPS: 0
-  playSelf: 1
+  targetFPS: 40
+  playSelf: 0
   id: 0
   serverUrl: virtualclassroom-server.cs.hku.hk
   roomNumber: 15
@@ -500,6 +501,18 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+--- !u!114 &1834242301
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1834242297}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cfe452064bc0591f8a97de042d7bcb17, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &2021057158
 GameObject:
   m_ObjectHideFlags: 0

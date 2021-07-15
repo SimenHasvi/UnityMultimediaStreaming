@@ -17,6 +17,8 @@ namespace UnityMultimediaStreaming.Scripts.Audio
     /// </summary>
     public class KafkaVoiceChatNetworkModule : VoiceChatNetworkModule
     {
+        public Action<bool> muteStatusChanged;
+        
         private readonly string _serverKafkaUri;
         private readonly string _serverRoomControlUri;
         private readonly int _roomNr;
@@ -124,8 +126,16 @@ namespace UnityMultimediaStreaming.Scripts.Audio
                 var tmp = JToken.Parse(Encoding.UTF8.GetString(message.Value))["audio_off_users"].Values<int>().Contains(Id);
                 if (tmp != _mute)
                 {
-                    if (tmp) VoiceChatUtils.Log(VoiceChatUtils.LogType.Info, "You have been muted.");
-                    else VoiceChatUtils.Log(VoiceChatUtils.LogType.Info, "You have been un muted.");
+                    if (tmp)
+                    {
+                        muteStatusChanged?.Invoke(true);
+                        VoiceChatUtils.Log(VoiceChatUtils.LogType.Info, "You have been muted.");
+                    }
+                    else
+                    {
+                        muteStatusChanged?.Invoke(false);
+                        VoiceChatUtils.Log(VoiceChatUtils.LogType.Info, "You have been un muted.");
+                    }
                 }
                 _mute = tmp;
             }
