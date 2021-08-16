@@ -1,9 +1,9 @@
 using System;
 using System.Linq;
 using System.Threading;
-using UnityMultimediaStreaming.Plugins;
-using UnityMultimediaStreaming.Plugins.Model;
-using UnityMultimediaStreaming.Plugins.Protocol;
+using KafkaNet;
+using KafkaNet.Model;
+using KafkaNet.Protocol;
 using UnityMultimediaStreaming.Scripts.Audio;
 
 namespace UnityMultimediaStreaming.Scripts.Video

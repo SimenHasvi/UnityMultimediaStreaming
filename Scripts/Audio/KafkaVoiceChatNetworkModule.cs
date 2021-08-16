@@ -3,12 +3,12 @@ using System.Collections;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using KafkaNet;
+using KafkaNet.Model;
+using KafkaNet.Protocol;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
 using UnityEngine.Networking;
-using UnityMultimediaStreaming.Plugins;
-using UnityMultimediaStreaming.Plugins.Model;
-using UnityMultimediaStreaming.Plugins.Protocol;
 
 namespace UnityMultimediaStreaming.Scripts.Audio
 {
@@ -41,6 +41,35 @@ namespace UnityMultimediaStreaming.Scripts.Audio
         {
             _serverKafkaUri = "kafka://" + serverUrl + ":9092";
             _serverRoomControlUri = "http://" + serverUrl + ":8080/ci/public/api/room/control/";
+            _roomNr = roomNr;
+            _serverTopicAudioData = "vcr-room-audio-" + _roomNr;
+            _serverTopicController = "vcr-room-control-" + _roomNr;
+            _frame = new short[AudioFormat.SamplesPerFrame];
+            _compressedFrame = new byte[AudioFormat.SamplesPerFrame];
+
+            var options = new ConsumerOptions(_serverTopicAudioData, new BrokerRouter(new KafkaOptions(new Uri(_serverKafkaUri))));
+            options.MinimumBytes = 1;
+            _audioDataConsumer = new Consumer(options);
+            var offsets = _audioDataConsumer.GetTopicOffsetAsync(_serverTopicAudioData).Result
+                .Select(x => new OffsetPosition(x.PartitionId, x.Offsets.Max())).ToArray();
+            _audioDataConsumer = new Consumer(options, offsets);
+            
+            options = new ConsumerOptions(_serverTopicController, new BrokerRouter(new KafkaOptions(new Uri(_serverKafkaUri))));
+            options.MinimumBytes = 1;
+            _controllerConsumer = new Consumer(options);
+            offsets = _controllerConsumer.GetTopicOffsetAsync(_serverTopicController).Result
+                .Select(x => new OffsetPosition(x.PartitionId, x.Offsets.Max() - 1)).ToArray();
+            _controllerConsumer = new Consumer(options, offsets);
+
+            _consumeAudioDataThread = new Thread(ConsumeController);
+            _consumeControllerThread = new Thread(ConsumeAudioData);
+            _producer = new Producer(new BrokerRouter(new KafkaOptions(new Uri(_serverKafkaUri))));
+        }
+        
+        public KafkaVoiceChatNetworkModule(int id, string serverKafkaUri, string serverRoomControlUri, int roomNr, AudioFormat audioFormat, AudioCodec audioCodec) : base(id, "", audioFormat, audioCodec)
+        {
+            _serverKafkaUri = serverKafkaUri;
+            _serverRoomControlUri = serverRoomControlUri;
             _roomNr = roomNr;
             _serverTopicAudioData = "vcr-room-audio-" + _roomNr;
             _serverTopicController = "vcr-room-control-" + _roomNr;
@@ -134,7 +163,7 @@ namespace UnityMultimediaStreaming.Scripts.Audio
                     else
                     {
                         muteStatusChanged?.Invoke(false);
-                        VoiceChatUtils.Log(VoiceChatUtils.LogType.Info, "You have been un muted.");
+                        VoiceChatUtils.Log(VoiceChatUtils.LogType.Info, "You have been unmuted.");
                     }
                 }
                 _mute = tmp;
@@ -147,7 +176,7 @@ namespace UnityMultimediaStreaming.Scripts.Audio
             form.AddField("room_id", _roomNr);
             if (userId != Id) form.AddField("user_id", userId);
 
-            var request = UnityWebRequest.Post(_serverRoomControlUri + "offAudio", form);
+            var request = UnityWebRequest.Post(_serverRoomControlUri + "/api/room/control/offAudio", form);
             request.SetRequestHeader("Authorization", userToken);
 
             yield return request.SendWebRequest();
@@ -164,7 +193,7 @@ namespace UnityMultimediaStreaming.Scripts.Audio
             form.AddField("room_id", _roomNr);
             if (userId != Id) form.AddField("user_id", userId);
 
-            var request = UnityWebRequest.Post(_serverRoomControlUri + "onAudio", form);
+            var request = UnityWebRequest.Post(_serverRoomControlUri + "/api/room/control/onAudio", form);
             request.SetRequestHeader("Authorization", userToken);
 
             yield return request.SendWebRequest();
